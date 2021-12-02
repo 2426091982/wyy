@@ -1,0 +1,102 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true
+    },
+    "extends": [
+        "eslint:recommended",
+        // "plugin:vue/essential", 面对vue3需要取消掉此选项，代表template可以存在多个根元素
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "parserOptions": {
+        "ecmaVersion": 2021,
+        "parser": "@typescript-eslint/parser",
+        "sourceType": "module"
+    },
+    "plugins": [
+        "vue",
+        "@typescript-eslint"
+    ],
+    "parser": "vue-eslint-parser",
+    "rules": {
+        // 不能将 const 重新赋值
+        "no-const-assign": "error",
+        // 文件结尾为换行符
+        "eol-last": ["error", "always"],
+        // 以分号结束
+        "semi": "error",
+        // 嵌套语句首字缩进 4 空格
+        "indent": [ "error", 4 ],
+        // 驼峰命名
+        "camelcase": ["error", { 
+            "properties": "always" 
+        }],
+        // 对象最后一项是否需要 , 跟随
+        "comma-dangle": ["error",{
+            "arrays": "never",
+            "objects": "always",
+            "imports": "never",
+            "exports": "never",
+            "functions": "never"
+        }],
+        // 箭头函数参数是否需要小括号包着
+        "arrow-parens": ["error"],
+        // 判断是否为NaN，需要用isNaN函数
+        "use-isnan": ["error"],
+        // 默认情况switch需要添加default
+        "default-case": ["error"],
+        // 箭头函数的=>前后需要空格分割 () => {}
+        "arrow-spacing": ["error", {
+            "before": true,
+            "after": true
+        }],
+
+        // 配置.vue文件
+        "vue/block-lang": ["error", {
+            "script": {
+                "lang": "ts" // script必须使用ts
+            },
+            "style": {
+                "lang": "scss" // style必须使用sass
+            }
+        }],
+        // 箭头函数的=>前后需要空格分割 () => {}
+        "vue/arrow-spacing": ["error", {
+            "before": true,
+            "after": true
+        }],
+        // 需要使用 === 或者 !==
+        "vue/eqeqeq": ["error", "always"],
+        // 禁止使用无用的小胡子语法 {{ 'xxx' }}
+        "vue/no-useless-mustaches": ["error", {
+            "ignoreIncludesComment": false,
+            "ignoreStringEscape": false
+        }],
+        // template主标签需要用换行 与 script、style 隔开
+        "vue/padding-line-between-blocks": ["error", "always"],
+        // 不可在路由钩子beforeEnter中使用this
+        "vue/no-this-in-before-route-enter": ["error"],
+        // template中不同标签缩进4空格
+        "vue/html-indent": ["error", 4],
+        // 禁止在行内属性中出现多个空格
+        "vue/no-multi-spaces": ["error"],
+        // 不可在watch中使用箭头函数
+        "vue/no-arrow-functions-in-watch": ["error"],
+        // 不允许v-if和v-else中出现相同条件
+        "vue/no-dupe-v-else-if": ["error"],
+        // 必须多个单词命名组件
+        "vue/multi-word-component-names": ["error", {
+            "ignores": ["Home"]
+        }],
+        // 禁止使用已经弃用的filterApi
+        "vue/no-deprecated-filter": ["error"],
+        // 禁止使用弃用属性scope，应该使用slot-scope
+        "vue/no-deprecated-scope-attribute": ["error"],
+        // 禁止使用已经弃用的functional template
+        "vue/no-deprecated-functional-template": ["error"],
+        // 禁止使用重复的行内属性
+        "vue/no-duplicate-attributes": ["error"],
+        // 禁止子组件直接更改 props 的值
+        "vue/no-mutating-props": ["error"]
+    }
+}
