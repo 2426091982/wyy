@@ -19,6 +19,9 @@
     ],
     "parser": "vue-eslint-parser",
     "rules": {
+        "no-undef": "off",
+        // 普通变量未使用
+        "no-unused-vars": "off",
         // 不能将 const 重新赋值
         "no-const-assign": "error",
         // 文件结尾为换行符
@@ -55,9 +58,6 @@
         "vue/block-lang": ["error", {
             "script": {
                 "lang": "ts" // script必须使用ts
-            },
-            "style": {
-                "lang": "scss" // style必须使用sass
             }
         }],
         // 箭头函数的=>前后需要空格分割 () => {}
@@ -84,10 +84,6 @@
         "vue/no-arrow-functions-in-watch": ["error"],
         // 不允许v-if和v-else中出现相同条件
         "vue/no-dupe-v-else-if": ["error"],
-        // 必须多个单词命名组件
-        "vue/multi-word-component-names": ["error", {
-            "ignores": ["Home"]
-        }],
         // 禁止使用已经弃用的filterApi
         "vue/no-deprecated-filter": ["error"],
         // 禁止使用弃用属性scope，应该使用slot-scope
@@ -97,6 +93,8 @@
         // 禁止使用重复的行内属性
         "vue/no-duplicate-attributes": ["error"],
         // 禁止子组件直接更改 props 的值
-        "vue/no-mutating-props": ["error"]
+        "vue/no-mutating-props": ["error"],
+        // template中已经使用了变量则不会在setup标签中报错
+        "vue/script-setup-uses-vars": "error"
     }
 }

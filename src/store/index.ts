@@ -1,23 +1,37 @@
 import { 
-    createStore,
-    Store, 
-    useStore as baseUseStore 
+    Store,
+    createStore, 
+    useStore as baseUseStore
 } from 'vuex';
-import { InjectionKey } from 'vue';
-import user from './modules/user';
-import cache from './modules/cache';
 import { State } from './types';
+import { InjectionKey } from 'vue';
 
 export const store = createStore({
+    state: {
+        isLlogin: false,
+        showLoginD: false,
+    },
+    mutations: {
+        changeShowLoginD(state, value) {
+            state.showLoginD = value;
+        },
+    },
     modules: {
-        user,
-        cache,
+        list: {
+            namespace: true,
+            state: { 
+                item: '123',
+            },
+            mutations: {
+                changeItem(key, value) {
+                    key.item =value;
+                },
+            },
+        },
     },
 });
 
-// 定义注入的标识
-export const key:InjectionKey<Store<State>> = Symbol();
-
-export function useStore() {
+export const key: InjectionKey<Store<State>> = Symbol();
+export function useStore () {
     return baseUseStore(key);
 }

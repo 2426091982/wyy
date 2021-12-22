@@ -1,13 +1,11 @@
-<script setup lang="ts">
-
+<script lang="ts" setup>
 </script>
 
 <template>
     <div>
-        sdfa
+        视频
     </div>
 </template>
 
-<style lang="scss">
-
+<style lang="less">
 </style>
