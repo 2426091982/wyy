@@ -1,10 +1,26 @@
 
 import { Store } from 'vuex';
 
-
-export type List = {
-    item: string,
+export interface UserData {
+    token: string,
+    profile: {
+        userId: number, // 用户ID
+        avatarUrl: string, // 头像地址
+        backgroundUrl: string, // 背景图地址
+        nickname: string, // 用户名
+    },
+}
+export type UserState = {
+    info?: UserData['profile'],
 };
+
+export type User = {
+    namespaced: true,
+    state: UserState,
+    mutations: {
+        updateUserInfo: (key: UserState, value: UserData['profile']) => void
+    },
+}
 
 // RootStore
 type Options = {
@@ -14,22 +30,17 @@ type Options = {
     },
     mutations: {
         changeShowLoginD(state: State,  value: boolean): void,
+        changeIsLogin(state: State, value: boolean): void,
     },
     modules: {
-        list: {
-            namespace: true,
-            state: List,
-            mutations: {
-                changeItem: (key: List, value: string) => void
-            },
-        },
+        user: User,
     },
 };
 
 type State = {
     isLlogin: boolean,
     showLoginD: boolean,
-    list: List,
+    user: UserState,
 };
 
 declare module '@vue/runtime-core' {
@@ -40,5 +51,5 @@ declare module '@vue/runtime-core' {
 
 declare module 'vuex' {
     function createStore(options: Options)
-        : () => void;
+        : Store<State>;
 }

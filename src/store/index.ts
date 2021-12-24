@@ -5,6 +5,7 @@ import {
 } from 'vuex';
 import { State } from './types';
 import { InjectionKey } from 'vue';
+import user from './modules/user';
 
 export const store = createStore({
     state: {
@@ -12,22 +13,15 @@ export const store = createStore({
         showLoginD: false,
     },
     mutations: {
+        changeIsLogin(state, value) {
+            state.isLlogin = value;
+        },
         changeShowLoginD(state, value) {
             state.showLoginD = value;
         },
     },
     modules: {
-        list: {
-            namespace: true,
-            state: { 
-                item: '123',
-            },
-            mutations: {
-                changeItem(key, value) {
-                    key.item =value;
-                },
-            },
-        },
+        user,
     },
 });
 

@@ -1,12 +1,26 @@
 <script setup lang="ts">
 import { ref } from '@vue/reactivity';
 import { MenuInfo } from 'ant-design-vue/lib/menu/src/interface';
+import { onMounted } from '@vue/runtime-core';
+import { message } from 'ant-design-vue';
+import { getLoginStatus, mountData } from './utils';
 import Header from '@/components/header/index.vue';
 import routes from '@/router/routes';
-import Login from '@/views/login/index.vue';
+import Login from '@/views/user/index.vue';
+
 
 let selectedKeys = ref([sessionStorage.getItem('key') || '1']);
 let sevaKey = (e: MenuInfo) => sessionStorage.setItem('key', `${e.key}`);
+
+// 验证登录
+onMounted(async () => {
+    const profile = await getLoginStatus();
+    if (profile !== null) {
+        mountData(profile, '自动登录成功');
+    } else {
+        message.warn('您还没有登录哦~');
+    }
+});
 </script>
 
 <template>
@@ -91,9 +105,21 @@ body {
     height: 100%;
 }
 
+.pointer {
+    cursor: pointer;
+}
+
+.textCenter {
+    text-align: center;
+}
+
 .ant-layout-content {
     padding-top: 15px;
     padding-left: 30px;
     background-color: #fff;
 }
 </style>
+
+function getLoginStatus() {
+    throw new Error('Function not implemented.');
+}

@@ -47,7 +47,7 @@
         // 判断是否为NaN，需要用isNaN函数
         "use-isnan": ["error"],
         // 默认情况switch需要添加default
-        "default-case": ["error"],
+        "default-case": ["off"],
         // 箭头函数的=>前后需要空格分割 () => {}
         "arrow-spacing": ["error", {
             "before": true,
