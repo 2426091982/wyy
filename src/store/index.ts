@@ -11,6 +11,7 @@ export const store = createStore({
     state: {
         isLlogin: false,
         showLoginD: false,
+        onLine: navigator.onLine,
     },
     mutations: {
         changeIsLogin(state, value) {

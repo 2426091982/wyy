@@ -1,4 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+import { store } from '@/store';
+import { message } from 'ant-design-vue';
+
+const objToFormData = <T extends {[key: string]: any}>(obj: T) => {
+    const formData = new FormData;
+    for (const key in obj) formData.append(key, obj[key]);
+    return formData;
+};
+
+const ask = (url: string, query: object) => {
+    return `${ url }${ url.includes('?') ? '&' : '?' }${ qs.stringify(query) }&time=${now()}`;
+};
+
+// 生成时间戳
+const now = () => Date.now();
+
 export const qs = {
     stringify<T extends object>(query: T) {
         let str = '';
@@ -14,18 +31,7 @@ export const qs = {
     },
 };
 
-const objToFormData = <T extends {[key: string]: any}>(obj: T) => {
-    const formData = new FormData;
-    for (const key in obj) formData.append(key, obj[key]);
-    return formData;
-};
 
-const ask = (url: string, query: object) => {
-    return `${ url }${ url.includes('?') ? '&' : '?' }${ qs.stringify(query) }&time=${now()}`;
-};
-
-// 生成时间戳
-const now = () => Date.now();
 
 class Request {
     public baseUrl: string;
@@ -47,6 +53,8 @@ class Request {
         method: string, 
         body: FormData | null = null
     ) {
+        
+        if (!this.requestInterceptor()) return Promise.resolve({}); // 请求前的拦截
         return new Promise((resolve, reject) => {
             fetch(url, {
                 ...this.config,
@@ -78,6 +86,14 @@ class Request {
         default :
             return response;
         }
+    }
+
+    requestInterceptor() {
+        if (!store.state.onLine) {
+            message.error('当前网络不可用！');
+            return false;
+        }
+        return true;
     }
 }
 

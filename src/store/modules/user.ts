@@ -1,11 +1,19 @@
-import { User } from '../types';
+import { User } from '../types/user';
 
 const user: User = {
     namespaced: true,
-    state: { },
+    state: {
+        info: {},
+        dyisma: {},
+        follows: {},
+        followeds: {},
+    },
     mutations: {
         updateUserInfo(state, value) {
             state.info = value;
+        },
+        updateUserEvents(state, value) {
+            state.dyisma = value;
         },
     },
 };

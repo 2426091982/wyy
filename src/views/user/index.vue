@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import { reactive, ref } from '@vue/reactivity';
-// import { useStore } from '@/store';
 import PhoneLogin from './phoneLogin.vue';
 import TwoCodeLogin from './twoCodeLogin.vue';
 // import { onBeforeUnmount, onMounted } from '@vue/runtime-core';
+// import { useStore } from '@/store';
+import OutIn from '@/components/out-in.vue';
 
 // const store = useStore();
 let isTwoCodeLogin = reactive({
@@ -83,7 +84,7 @@ const changeIsTwoCodeLogin = () => isTwoCodeLogin.state = !isTwoCodeLogin.state;
                 @mousedown="mouseDown"
                 :key="position"
             ></div>
-            <transition name="switch-login-mode" mode="out-in">
+            <out-in>
                 <keep-alive>
                     <component 
                         :is="isTwoCodeLogin.state ? TwoCodeLogin : PhoneLogin"
@@ -91,7 +92,7 @@ const changeIsTwoCodeLogin = () => isTwoCodeLogin.state = !isTwoCodeLogin.state;
                         @changeIsTwoCodeLogin="changeIsTwoCodeLogin"
                     ></component>
                 </keep-alive>
-            </transition>
+            </out-in>
         </div>
     </transition>
 </template>
@@ -100,23 +101,13 @@ const changeIsTwoCodeLogin = () => isTwoCodeLogin.state = !isTwoCodeLogin.state;
 .modal-enter-from,
 .modal-leave-to {
     opacity: 0;
-    transform: translate(580px, -100px) scale(0) !important;
+    transform: translate(-50%, -50px) !important;
     transform-origin: top right;
 }
 
 .modal-enter-active,
 .modal-leave-active {
-    transition: transform 0.5s, opacity 0.5s;
-}
-
-.switch-login-mode-enter-from,
-.switch-login-mode-leave-to {
-    opacity: 0;
-}
-
-.switch-login-mode-enter-active,
-.switch-login-mode-leave-active {
-    transition: opacity 0.5s;;
+    transition: transform 0.5s, opacity 0.4s;
 }
 
 .margin0 {

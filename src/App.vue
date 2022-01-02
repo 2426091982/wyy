@@ -1,38 +1,49 @@
 <script setup lang="ts">
 import { ref } from '@vue/reactivity';
-import { MenuInfo } from 'ant-design-vue/lib/menu/src/interface';
 import { onMounted } from '@vue/runtime-core';
 import { message } from 'ant-design-vue';
 import { getLoginStatus, mountData } from './utils';
 import Header from '@/components/header/index.vue';
 import routes from '@/router/routes';
 import Login from '@/views/user/index.vue';
+import { useRouter } from 'vue-router';
+import { watch } from 'vue';
+import { useStore } from '@/store';
 
+let store = useStore();
+let router = useRouter();
+let selectedKeys = ref(['-1']);
 
-let selectedKeys = ref([sessionStorage.getItem('key') || '1']);
-let sevaKey = (e: MenuInfo) => sessionStorage.setItem('key', `${e.key}`);
+window.addEventListener('online', () => (store.state.onLine = true));
+window.addEventListener('offline', () => (store.state.onLine = false));
 
 // 验证登录
 onMounted(async () => {
     const profile = await getLoginStatus();
-    if (profile !== null) {
+    if (profile != null) {
         mountData(profile, '自动登录成功');
     } else {
         message.warn('您还没有登录哦~');
     }
 });
+
+watch( // 观察当前路由的meat有没有name，没有则不会选中导航栏
+    () => router.currentRoute.value, 
+    (now) => {
+        const key = now.meta.key as string ?? '-1';
+        selectedKeys.value = [key];
+    }
+);
 </script>
 
 <template>
     <a-layout style="width: 100%; height: 100%">
         <Header></Header>
         <a-layout>
-            <!-- collapsible 收起 -->
             <a-layout-sider theme='light'>
                 <a-menu 
                     v-model:selectedKeys="selectedKeys" 
                     mode="inline"
-                    @click="sevaKey"
                 >
                     <template v-for="route in routes">
                         <a-menu-item 
@@ -49,7 +60,7 @@ onMounted(async () => {
                     </a-menu-item-group>
                 </a-menu>
             </a-layout-sider>
-            <a-layout-content>
+            <a-layout-content class="main">
                 <router-view></router-view>
             </a-layout-content>
         </a-layout>
@@ -69,26 +80,39 @@ body {
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
+
 }
 
 ::-webkit-scrollbar-track {
-    background: #fff;
     border-radius: 2px;
+    background: #fff;
+    box-shadow: none;
+}
+
+:hover::-webkit-scrollbar-track {
     box-shadow: inset 0px 0px 10px #999;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #666;
-    box-shadow: 0px 0px 10px #666;
+    background: transparent;
     border-radius: 10px;
 }
 
+:hover::-webkit-scrollbar-thumb {
+    background: #666666;
+    box-shadow: 0px 0px 10px #666;
+}
+
 ::-webkit-scrollbar-thumb:hover {
-    background: #999;
+    background: #999999;
 }
 
 ::-webkit-scrollbar-corner {
     background: #204754;
+}
+
+:hover:-webkit-scrollbar-corner {
+    background: transparent;
 }
 
 #app {
@@ -105,21 +129,29 @@ body {
     height: 100%;
 }
 
-.pointer {
+.base-size16px {
+    font-size: 16px;
+}
+
+.base-pointer {
     cursor: pointer;
 }
 
-.textCenter {
+.base-text-center {
     text-align: center;
 }
 
 .ant-layout-content {
-    padding-top: 15px;
-    padding-left: 30px;
+    padding: 15px 30px;
     background-color: #fff;
 }
-</style>
 
-function getLoginStatus() {
-    throw new Error('Function not implemented.');
+.main {
+    width: 100%;
+    height: 100%;
+    min-width: 495px;
+    overflow-x: hidden;
+    overflow-y: scroll;
 }
+
+</style>

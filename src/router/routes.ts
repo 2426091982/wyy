@@ -52,6 +52,18 @@ const routes: RouteRecordRaw[] = [
         meta: {
             name: '我的音乐',
         },
+    },
+    {
+        path: '/dynamic',
+        component: () => import('@/views/dynamic/dynamic.vue'),
+    },
+    {
+        path: '/follows',
+        component: () => import('@/views/follows/follows.vue'),
+    },
+    {
+        path: '/followeds',
+        component: () => import('@/views/followeds/followeds.vue'),
     }
 ];
 

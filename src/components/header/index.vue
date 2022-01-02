@@ -6,21 +6,86 @@ import {
     BellOutlined,
     SettingOutlined,
     SearchOutlined, 
+    CaretDownOutlined,
     UserOutlined 
 } from '@ant-design/icons-vue';
+import { 
+    DyismaData, 
+    FollowedsData, 
+    FollowsData 
+} from '@/store/types/user';
+import { 
+    getDynamic, 
+    getFolloweds, 
+    getFollows 
+} from '@/api';
 import { ref } from '@vue/reactivity';
 import { useStore } from '@/store';
 import { loginOut } from '@/utils';
 import historicalRecords from './historicalRecords.vue';
-
+import Loading from '@/components/loading.vue';
 
 let value = ref('');
+let loading = ref(true);
+let showDropdown = ref(false);
 let onSearch = () => {
     console.log('搜索');
 };
-let store = useStore();
-let user = store.state.user;
 
+const store = useStore();
+const user = store.state.user;
+
+// 获取用户动态
+const getUserDynamic = async (uid: number) => {
+    const {
+        events, 
+        lasttime, 
+        more, 
+        size,
+    } = await getDynamic(uid) as DyismaData;
+    user.dyisma['events'] = events;
+    user.dyisma['lasttime'] = lasttime;
+    user.dyisma['more'] = more;
+    user.dyisma['size'] = size;
+};
+
+// 获取用户关注列表
+const getUserFollow = async (uid: number) => {
+    const {
+        follow,
+        more,
+    } = await getFollows(uid) as FollowsData;
+    user.follows['follow'] = follow;
+    user.follows['more'] = more;
+    user.follows['size'] = follow.length;
+};
+
+// 获取用户粉丝列表
+const getUserFolloweds = async (uid: number) => {
+    const {
+        followeds,
+        more,
+        newCount,
+        size,
+    } = await getFolloweds(uid) as FollowedsData;
+    user.followeds['followeds'] = followeds;
+    user.followeds['newCount'] = newCount;
+    user.followeds['more'] = more;
+    user.followeds['size'] = size;
+};
+
+// 发送请求，更新数据
+const sends = async () => {
+    if(!user.info) return;
+    if (!showDropdown.value) return;
+    const uid: number = user.info.userId;
+    await Promise.all([
+        getUserDynamic(uid), 
+        getUserFollow(uid), 
+        getUserFolloweds(uid)
+    ]);
+    loading.value = false;
+};
 </script>
 
 <template>
@@ -43,31 +108,48 @@ let user = store.state.user;
         </div>
         <div class="flex-item">
             <a-space :size="20">
-                <a-space v-if="user.info">
-                    <a-dropdown trigger="click">
-                        <a-space>
+                <a-space v-if="store.state.isLlogin && user.info">
+                    <a-dropdown v-model:visible="showDropdown" trigger="click" @visibleChange="sends">
+                        <a-space class="base-pointer">
                             <a-avatar>
                                 <template #icon>
                                     <img :src="user.info.avatarUrl" alt="">
                                 </template>
                             </a-avatar>
-                            <span class="login pointer">
+                            <span class="login">
                                 {{ user.info.nickname }}
+                                <caret-down-outlined />
                             </span>
                         </a-space>
                         <template #overlay>
                             <div class="overlay">
-                                <a-row class="textCenter">
-                                    <a-col :span="8">
-                                        <a-statistic class="pointer" title="动态" :value="0"/>
-                                    </a-col>
-                                    <a-col :span="8">
-                                        <a-statistic class="pointer" title="关注" :value="0" />
-                                    </a-col>
-                                    <a-col :span="8">
-                                        <a-statistic class="pointer" title="粉丝" :value="0" />
-                                    </a-col>
-                                </a-row>
+                                <Loading :loading="loading" height="64px">
+                                    <a-row class="textCenter">
+                                        <a-col :span="8">
+                                            <router-link 
+                                                :to="{ 
+                                                    path: '/dynamic', 
+                                                    query: { 
+                                                        name: user.info.nickname, 
+                                                        id: user.info.userId, 
+                                                    },
+                                                }"
+                                            >
+                                                <a-statistic class="base-pointer" title="动态" :value="user.dyisma.size"/>
+                                            </router-link>
+                                        </a-col>
+                                        <a-col :span="8">
+                                            <router-link to="/follows">
+                                                <a-statistic class="base-pointer" title="关注" :value="user.follows.size" />
+                                            </router-link>
+                                        </a-col>
+                                        <a-col :span="8">
+                                            <router-link to="/followeds">
+                                                <a-statistic class="base-pointer" title="粉丝" :value="user.followeds.size" />
+                                            </router-link>
+                                        </a-col>
+                                    </a-row>
+                                </Loading>
                                 <a-menu class="header-menu">
                                     <a-menu-item class="header-menu-item" key="1">
                                         <a-row>
@@ -102,9 +184,9 @@ let user = store.state.user;
                 </a-space>
                 <a-space v-else>
                     <a-avatar @click="$store.commit('changeShowLoginD', true)">
-                        <template #icon><user-outlined class="pointer" /></template>
+                        <template #icon><user-outlined class="base-pointer" /></template>
                     </a-avatar>
-                    <span class="login pointer" @click="$store.commit('changeShowLoginD', true)">未登录</span>
+                    <span class="login base-pointer" @click="$store.commit('changeShowLoginD', true)">未登录</span>
                 </a-space>
                 <a-badge count="5" dot>
                     <bell-outlined class="header-icon" />
@@ -202,10 +284,15 @@ let user = store.state.user;
 </style>
 
 <style lang="less">
+.center {
+    text-align: center;
+    padding: 30px 50px;
+}
+
 /* 下拉框样式 */
 .overlay {
     position: relative;
-    right: -45%;
+    right: 10%;
     width: 300px;
     padding-top: 10px;
     box-shadow: 0px 0px 10px #999999;
@@ -238,5 +325,4 @@ let user = store.state.user;
         background-color: #f0f0f0 !important;
     }
 }
-
 </style>

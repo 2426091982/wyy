@@ -9,10 +9,9 @@ import {
     MobileOutlined,
     LockOutlined 
 } from '@ant-design/icons-vue';
-import Register from './register.vue';
 import EmailLogin from './emaliLogin.vue';
 import { phoneLogin } from "@/api";
-import { UserData } from "@/store/types";
+import { UserInfo } from "@/store/types/user";
 import { checkLogin, noAutoLogin } from "@/utils";
 
 interface FormState {
@@ -23,7 +22,6 @@ interface FormState {
 let emits = defineEmits(['changeIsTwoCodeLogin']);
 let isPhoneLogin = ref(true); // 手机登录页
 let autoLogin = ref(false); // 自动登录
-let isRegister = ref(false); // 注册
 let formRef = ref();
 let loading = ref(false);
 
@@ -55,7 +53,7 @@ const rules = reactive({
 const onSubmit = async () => {
     let { phone, password, } = await formRef.value.validate() as FormState;
     loading.value = true;
-    let { code,  profile, } = await phoneLogin(+phone, password) as UserData & { code: number };
+    let { code,  profile, } = await phoneLogin(+phone, password) as UserInfo & { code: number };
     checkLogin(code, profile);
     loading.value = false;
     if (!autoLogin.value) {
@@ -64,13 +62,11 @@ const onSubmit = async () => {
 };
 // 切换登录模式
 const switchLogin = () => isPhoneLogin.value = !isPhoneLogin.value;
-// 切换注册页
-const switchRegister = (value: boolean) => isRegister.value = value;
 </script>
 
 <template>
     <transition name="switch-login-mode" mode="out-in">
-        <div v-if="isPhoneLogin && !isRegister">
+        <div v-if="isPhoneLogin">
             <div class="login-modal-header">
                 <div class="two-code-login">
                     <img src="/images/to-two-code.png" @click="emits('changeIsTwoCodeLogin')" alt="二维码登录" />
@@ -134,7 +130,6 @@ const switchRegister = (value: boolean) => isRegister.value = value;
                     </a-form-item>
                 </a-form>
                 <div class="switch-login">
-                    <a-button type="link" @click="switchRegister(true)"> 注册 </a-button> | 
                     <a-button 
                         type="link" 
                         style="color: #333;"
@@ -144,11 +139,10 @@ const switchRegister = (value: boolean) => isRegister.value = value;
             </div>
         </div>
         <email-login 
-            v-else-if="!isRegister" 
+            v-else
             @changeIsTwoCodeLogin="emits('changeIsTwoCodeLogin')" 
             @switchLogin="switchLogin"
         ></email-login>
-        <Register v-else @switchRegister="switchRegister"></Register>
     </transition>
 </template>
 

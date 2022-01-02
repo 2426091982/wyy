@@ -6,7 +6,7 @@ import {
 } from '@ant-design/icons-vue';
 import { reactive, ref, UnwrapRef } from '@vue/reactivity';
 import { emailLogin } from '@/api';
-import { UserData } from '@/store/types';
+import { UserInfo } from '@/store/types/user';
 import { checkLogin, noAutoLogin } from '@/utils';
 
 interface FormState {
@@ -48,7 +48,7 @@ const rules = reactive({
 const onSubmit = async () => {
     let { email, password, } = await formRef.value.validate() as FormState;
     loading.value = true;
-    let { code, profile, } = await emailLogin(email, password) as UserData & { code: number };
+    let { code, profile, } = await emailLogin(email, password) as UserInfo & { code: number };
     checkLogin(code, profile);
     loading.value = false;
     if (!autoLogin.value) {
