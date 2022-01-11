@@ -19,7 +19,9 @@ import {
 import { 
     getDynamic, 
     getEventComment, 
-    resourceLike 
+    resourceLike,
+    getSongUrl,
+    checkMusic
 } from '@/api';
 import { 
     parseCommentData, 
@@ -29,9 +31,13 @@ import {
     isLogin,
     parseDate 
 } from '@/utils';
+import { useStore } from '@/store';
 import { useRoute } from "vue-router";
+import { SongData } from '@/store/types/song';
+import { CurrentMusicState } from '@/store/types/CurrentMusic';
 import Loading from '@/components/loading.vue';
 import Comment from '@/components/comment/comment.vue';
+import PlayBut from '@/components/playBut.vue';
 
 type TData = { 
     events: DyismaData['events'] | null,
@@ -58,6 +64,7 @@ onMounted(async () => {
         }
         // 获取动态下的评论
         data.events?.forEach(async(item) => {
+            item.play = false;
             item.comments = await getComment(item);
         });
         loading.value = false;
@@ -74,6 +81,7 @@ let loading = ref<boolean>(true);
 let error = ref<boolean>(false);
 let errorMsg = ref('请检查你的网络之后再重新获取！');
 
+const store = useStore();
 const route = useRoute();
 const { name, id, } = route.query;
 
@@ -117,6 +125,32 @@ const gongGe = (len: number, picH: number) => {
     };
 };
 
+const play = async (events: UserEvents[] | null, id: number) => {
+    if (!events) return;
+    let song = events[id].json.song;
+    let info = {} as CurrentMusicState;
+    if (!events[id].play) {
+        await checkMusic(song.id) as { code: number };
+        const songUrl = await getSongUrl(song.id) as SongData[];
+        songUrl.forEach((item) => {
+            info.url = item.url;
+            info.br = item.br;
+        });
+        info.id = song.id;
+        info.name = song.name;
+        info.pic = song.img80x80;
+        info.artists = artists(song.artists);
+        info.likes = false; // 去喜欢的音乐列表中匹配
+        store.commit('currentMusic/changeState', info);
+        store.commit('currentMusic/playSong', true);
+    } else {
+        store.commit('currentMusic/playSong', false);
+    }
+    events.forEach((item, key) => {
+        item.play = id === key ? !item.play : false;
+    });
+};
+
 // 点赞或取消点赞
 const like = async (liked: boolean, threadId: string, id: number) => {
     if (!isLogin()) return;
@@ -134,13 +168,17 @@ const getComment = async (info :UserEvents): Promise<CommentInfo[]> => {
     if (info.showComments === undefined) {
         info.showComments = true;
         const { comments, } = await getEventComment(info.info.threadId) as Comments;
-        return parseCommentData(comments);
+        return parseCommentData(comments) as CommentInfo[];
     }
-    
     info.showComments = !info.showComments;
     if(info.showComments) return info.comments;
     const { comments, } = await getEventComment(info.info.threadId) as Comments;
-    return parseCommentData(comments);
+    return parseCommentData(comments) as CommentInfo[];
+};
+
+// 更新评论数据
+const updateCData = (source: UserEvents, cData: CommentInfo) => {
+    source.comments.push(cData);
 };
 </script>
 
@@ -183,8 +221,11 @@ const getComment = async (info :UserEvents): Promise<CommentInfo[]> => {
                 </a-space>
                 <div class="share-detail base-margin-left50px">
                     <p>{{ event.json.msg }}</p>
-                    <div class="share-song">
-                        <img :src="event.json.song.img80x80" width="40" height="40" alt="音乐">
+                    <div class="share-song base-pointer" @click="play(data.events, id)">
+                        <div style="position: relative">
+                            <play-but v-model:play="event.play"></play-but>
+                            <img :src="event.json.song.img80x80" width="40" height="40" alt="音乐">
+                        </div>
                         <div class="share-song-detail">
                             <span>
                                 {{ event.json.song.name }} <!-- 歌名 -->
@@ -238,8 +279,9 @@ const getComment = async (info :UserEvents): Promise<CommentInfo[]> => {
                 </div>
                 <Comment 
                     v-show="!event.showComments"
-                    :source-data="event.info"
+                    :source-data="event"
                     :comment-data="event.comments || []"
+                    @updateCData="updateCData"
                     class="base-margin-left50px"
                 ></Comment>
             </div>
@@ -264,6 +306,10 @@ const getComment = async (info :UserEvents): Promise<CommentInfo[]> => {
 .dynamic {
     padding: 10px 0px;
     border-bottom: 1px solid #dddddd;
+
+    &:last-child {
+        border-bottom: none;
+    }
 }
 
 .author-info {
@@ -291,6 +337,7 @@ const getComment = async (info :UserEvents): Promise<CommentInfo[]> => {
     height: 60px;
     border-radius: 8px;
     background-color: #f4f4f4;
+    transition: background-color 0.2s;
 
     &:hover {
         background-color: #dddddd;

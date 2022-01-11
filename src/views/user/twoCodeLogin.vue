@@ -71,7 +71,7 @@ onBeforeUnmount(() => {
                 <close-outlined @click="$store.commit('changeShowLoginD', false)"/>
             </div>
         </div>
-        <div class="login-modal-body textCenter">
+        <div class="login-modal-body base-text-center">
             <h2>扫码登录</h2>
             <div 
                 :class="`two-code-body ${enter ? 'two-code-body-hover' : ''}`" 
@@ -106,7 +106,7 @@ onBeforeUnmount(() => {
             </div>
         </div>
         <div
-            class="switch-login-mode textCenter" 
+            class="switch-login-mode base-text-center" 
             @click="emits('changeIsTwoCodeLogin')"
         > 
             <span> 选择其它登录模式&nbsp;&gt; </span> 

@@ -132,3 +132,30 @@ export const parseDate = (time: number, second = false) => {
         second ? ':' + add0(seconds) : ''
     }`;
 };
+
+/**
+ * 处理时间
+ * @param time 时间
+ * @returns 时:分:秒 / 分:秒
+ */
+export const handleTime = (time: number) => {
+    const hours = Math.floor(time / 60 / 60);
+    let minute = Math.floor(time / 60);
+    minute = minute >= 60 ? Math.floor(minute / 60) : minute;
+    const scound = time - (hours * 60 * 60 + minute * 60);
+    return `${
+        hours > 9
+            ? hours + ':'
+            : hours === 0 
+                ? ''
+                : '0' + hours + ':'
+    }${
+        minute > 9 
+            ? minute
+            : '0' + minute
+    }:${
+        scound > 9
+            ? scound
+            : '0' + scound
+    }`;
+};

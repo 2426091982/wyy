@@ -6,6 +6,7 @@ import {
 import { State } from './types';
 import { InjectionKey } from 'vue';
 import user from './modules/user';
+import currentMusic from './modules/currentMusic';
 
 export const store = createStore({
     state: {
@@ -23,6 +24,7 @@ export const store = createStore({
     },
     modules: {
         user,
+        currentMusic,
     },
 });
 

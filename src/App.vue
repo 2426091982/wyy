@@ -1,14 +1,19 @@
 <script setup lang="ts">
+import { 
+    getLoginStatus, 
+    mountData 
+} from './utils';
 import { ref } from '@vue/reactivity';
 import { onMounted } from '@vue/runtime-core';
 import { message } from 'ant-design-vue';
-import { getLoginStatus, mountData } from './utils';
-import Header from '@/components/header/index.vue';
-import routes from '@/router/routes';
-import Login from '@/views/user/index.vue';
 import { useRouter } from 'vue-router';
 import { watch } from 'vue';
 import { useStore } from '@/store';
+import Header from '@/components/header/index.vue';
+import routes from '@/router/routes';
+import Login from '@/views/user/index.vue';
+import Player from '@/components/footer/index.vue';
+
 
 let store = useStore();
 let router = useRouter();
@@ -64,7 +69,9 @@ watch( // 观察当前路由的meat有没有name，没有则不会选中导航�
                 <router-view></router-view>
             </a-layout-content>
         </a-layout>
-        <a-layout-footer>底部播放器</a-layout-footer>
+        <a-layout-footer>
+            <player></player>
+        </a-layout-footer>
     </a-layout>
     <Login></Login>
 </template>
@@ -115,6 +122,10 @@ body {
     background: transparent;
 }
 
+::selection {
+    background-color: #1890ff;
+}
+
 #app {
     width: 100%;
     height: 100%;
@@ -124,6 +135,13 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+.icon {
+    width: 1em; height: 1em;
+    vertical-align: -0.15em;
+    fill: currentColor;
+    overflow: hidden;
+}
+
 .ant-menu  {
     //border-right: 1px solid #f0f0f0;
     height: 100%;
@@ -131,6 +149,10 @@ body {
 
 .base-size16px {
     font-size: 16px;
+}
+
+.base-size20px {
+    font-size: 20px;
 }
 
 .base-pointer {
@@ -143,7 +165,7 @@ body {
 
 .ant-layout-content {
     padding: 15px 30px;
-    background-color: #fff;
+    background-color: #ffffff;
 }
 
 .main {
@@ -154,4 +176,15 @@ body {
     overflow-y: scroll;
 }
 
+.ant-layout-footer {
+    display: flex;
+    padding: 10px 20px;
+    min-width: 665px;
+    height: 80px;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #f0f0f0;
+    background-color: #ffffff;
+    user-select: none;
+}
 </style>

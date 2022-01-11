@@ -124,7 +124,7 @@ const sends = async () => {
                         <template #overlay>
                             <div class="overlay">
                                 <Loading :loading="loading" height="64px">
-                                    <a-row class="textCenter">
+                                    <a-row class="base-text-center">
                                         <a-col :span="8">
                                             <router-link 
                                                 :to="{ 

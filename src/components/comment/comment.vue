@@ -5,17 +5,22 @@ import {
     LikeOutlined
 } from '@ant-design/icons-vue';
 import { 
-    UserEventInfo, 
-    CommentInfo 
+    CommentInfo, 
+    UserEvents
 } from "@/store/types/user";
-import { commentLike } from "@/api";
+import { 
+    commentLike, 
+    postComment 
+} from "@/api";
 import { ref } from "@vue/reactivity";
 import { PropType } from "@vue/runtime-core";
 import { parseDate } from '@/utils';
+import { message } from 'ant-design-vue';
+import { parseCommentData } from '@/utils/parseData';
 
-defineProps({
+const { sourceData, } = defineProps({
     sourceData: {
-        type: Object as PropType<UserEventInfo>,
+        type: Object as PropType<UserEvents>,
         required: true,
     },
     commentData: {
@@ -23,12 +28,15 @@ defineProps({
         required: true,
     },
 });
+const emits = defineEmits(['updateCData']);
 
 let t = 1;
+let cid: number;
 let nickname = '';
 let max = ref(140);
 let remain = ref(140);
-let comments = ref('');
+let commentText = ref('');
+let commentId = ref();
 let comment = ref<HTMLTextAreaElement>();
 // @
 const aite = () => {
@@ -42,30 +50,48 @@ const likeComment = async (id:string, cid: number, like: boolean, comment: Comme
     !like ? comment.likedCount++ : comment.likedCount--;
 };
 
-const reply = (name: string) => {
-    t = 2;
+const reply = (name: string, id: number) => {
+    t === 1 ? t = 2 : null;
     nickname = name;
-    comments.value = `回复${name}：`;
+    commentText.value = `回复${name}：`;
     remain.value = 140;
     comment.value && comment.value.focus();
+    commentId.value = cid = id;
 };
 
-const sendComment = () => {
-    console.log('发送评论');
+const sendComment = async (threadId:string) => {
+    if (remain.value === 140) {
+        message.error('要先输入内容才可以发送评论哦！');
+        return;
+    }
+    const value = commentText.value;
+    const content = t === 1 ? value : value.slice(value.indexOf('：') + 1);
+    const { code, comment, } = await postComment(t, 6, threadId, content, commentId.value) as { code: number, comment: CommentInfo };
+    if ( code !== 200) {
+        message.error('评论失败，稍后再试！');
+        return;
+    }
+    message.success('评论成功！');
+    commentText.value = '';
+    // 更新评论区功能
 };
 
+// 监听文本框发生变化时
 const textareaChange = (e: Event) => {
     const el = e.target as HTMLInputElement;
-    const val = comments.value =  el.value;
+    const val = commentText.value =  el.value;
     if (val.startsWith(`回复${nickname}：`)) {
+        t === 1 ? t = 2 : null;
         let index = val.indexOf('：');
         max.value = 141 + index;
         remain.value = max.value - val.length;
+        commentId.value == null ? commentId.value = cid : null; 
     } else {
         max.value = 140;
         remain.value = 140 - val.length;
+        t === 2 ? t = 1 : null;
+        commentId.value ? commentId.value = undefined : null;
     }
-    console.log(val.length, max.value);
 };
 </script>
 
@@ -77,7 +103,7 @@ const textareaChange = (e: Event) => {
                     ref="comment"
                     cols="6" 
                     rows="4"
-                    :value="comments"
+                    :value="commentText"
                     :maxlength="max"
                     @input="textareaChange"
                 ></textarea>
@@ -89,7 +115,7 @@ const textareaChange = (e: Event) => {
                     &nbsp;
                     <span class="symbol">#</span>
                 </div>
-                <a-button class="comment-but" @click="sendComment" > 评论 </a-button>
+                <a-button class="comment-but" @click="sendComment(sourceData.info.threadId)" > 评论 </a-button>
             </div>
         </div>
         <p v-if="!commentData.length" class="base-text-center">暂时还没有评论，快来枪沙发吧！</p>
@@ -144,7 +170,7 @@ const textareaChange = (e: Event) => {
                     <div :class="`${comment.liked ? 'is-like' : ''}`">
                         <like-outlined 
                             class="default" 
-                            @click="likeComment(sourceData.threadId, comment.commentId, comment.liked, comment)"
+                            @click="likeComment(sourceData.info.threadId, comment.commentId, comment.liked, comment)"
                         />
                         <span>&nbsp;{{ comment.likedCount }}</span>
                     </div>
@@ -152,9 +178,9 @@ const textareaChange = (e: Event) => {
                     <div>
                         <comment-outlined 
                             class="default"
-                            @click="reply(comment.user.nickname)"
+                            @click="reply(comment.user.nickname, comment.commentId)"
                         />
-                    </div>
+                    </div>  
                 </template>
             </a-comment>
         </template>

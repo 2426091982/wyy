@@ -1,6 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import http from '../requset';
 type Require =  (uid: number) => Promise<unknown>;
+
+const parseId = (query: any) => {
+    if (typeof query.id === 'string') {
+        query.threadId = query.id;
+        delete query.id;
+    }
+    return query;
+};
+
 // 获取用户动态
 export const getDynamic: Require = (uid) => http.get('/user/event', { uid, });
 
@@ -20,18 +29,11 @@ export const getEventComment = (threadId: string) => http.get('/comment/event', 
  * @param id 资源的ID
  */
 export const resourceLike = (t:number, type: number, id: string | number) => {
-    const query: any = { 
+    return http.get('/resource/like', parseId({ 
         t, 
         type,
-    }; 
-
-    if (typeof id === 'string') {
-        query.threadId = id;
-    } else {
-        query.id = id;
-    }
-
-    return http.get('/resource/like', query);
+        id,
+    }));
 };
 
 /**
@@ -41,18 +43,44 @@ export const resourceLike = (t:number, type: number, id: string | number) => {
  * @param t 0取消 1点赞
  * @param type 0: 歌曲 1: mv 2: 歌单 3: 专辑 4: 电台 5: 视频 6: 动态
  */
-export const commentLike = (id: number | string, cid: number, t: number, type: number) => {
-    const query: any = { 
-        cid,
+export const commentLike = (
+    id: number | string, 
+    cid: number, 
+    t: number, 
+    type: number
+) => {
+    return http.get(
+        '/comment/like',
+        parseId({
+            id,
+            cid,
+            t,
+            type,
+        })
+    );
+};
+
+/**
+ * 发表评论
+ * @param t 发送1 回复2
+ * @param type 0: 歌曲 1: mv 2: 歌单 3: 专辑 4: 电台 5: 视频 6: 动态
+ * @param id 对应资源 id
+ * @param content 要发送的内容
+ * @param commentId 回复的评论 id（回复为必传）
+ */
+export const postComment = (
+    t: number, 
+    type: number, 
+    id: number | string, 
+    content: string, 
+    commentId?: number
+) => {
+    const body: any = parseId({
         t,
         type,
-    }; 
-    
-    if (typeof id === 'string') {
-        query.threadId = id;
-    } else {
-        query.id = id;
-    }
-
-    return http.get('/comment/like', query);
+        id,
+        content,
+    });
+    commentId ? body.commentId = commentId : null;
+    return http.get('/comment', body);
 };

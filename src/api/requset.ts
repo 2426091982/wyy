@@ -10,7 +10,7 @@ const objToFormData = <T extends {[key: string]: any}>(obj: T) => {
 };
 
 const ask = (url: string, query: object) => {
-    return `${ url }${ url.includes('?') ? '&' : '?' }${ qs.stringify(query) }&time=${now()}`;
+    return `${ url }${ url.includes('?') ? '&' : '?' }${ qs.stringify(query) }`;
 };
 
 // 生成时间戳
@@ -30,8 +30,6 @@ export const qs = {
         return obj;
     },
 };
-
-
 
 class Request {
     public baseUrl: string;
@@ -67,15 +65,16 @@ class Request {
         });
     }
 
-    get(path: string, query?: object) {
+    get(path: string, query: object, time = false) {
         let url = `${this.baseUrl}${path}`;
-        query ? url = ask(url, query) : url = `${url}?time=${now()}`;
-        
+        time ? query['time'] = now() : null;
+        url = `${ask(url, query)}`;
         return this.send(url, 'get');
     }
 
-    post(path: string, body: object) {
+    post(path: string, body: any, time = false) {
         const url = `${this.baseUrl}${path}`;
+        time ? body.time = now() : null;
         return this.send(url, 'post', objToFormData(body));
     }
 

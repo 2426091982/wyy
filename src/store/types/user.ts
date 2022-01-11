@@ -29,6 +29,7 @@ export interface UserEvents {
     }];
     showComments: boolean | undefined; // 显示隐藏评论区
     comments: CommentInfo[]; // 评论数据，这是另外一个请求的数据
+    play: boolean; // 是否播放
 }
 // 动态数据格式
 export interface DyismaData {
@@ -128,6 +129,7 @@ export interface Replied {
 export interface CommentUser {
     avatarUrl: string;
     nickname: string;
+    userId: number;
 }
 
 // 粉丝数据

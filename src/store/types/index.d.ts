@@ -1,4 +1,5 @@
 import { Store } from 'vuex';
+import { CurrentMusic, CurrentMusicState } from './CurrentMusic';
 import {
     User,
     UserState
@@ -17,6 +18,7 @@ type Options = {
     },
     modules: {
         user: User,
+        currentMusic: CurrentMusic
     },
 };
 
@@ -25,6 +27,7 @@ type State = {
     showLoginD: boolean,
     onLine: boolean,
     user: UserState,
+    currentMusic: CurrentMusicState
 };
 
 declare module '@vue/runtime-core' {

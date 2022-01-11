@@ -18,7 +18,8 @@ export const parseEventData = (events: DyismaData['events']) => {
         'type', 
         'user',
         'comments',
-        'showComments'
+        'showComments',
+        'play'
     ], events);
     // 
     data.forEach((item: UserEvents, i) => {
@@ -92,7 +93,8 @@ export const parseCommentData = (comments: CommentInfo[]) => {
         data[i].user = deconstruction(
             [
                 'avatarUrl', 
-                'nickname'
+                'nickname',
+                'userId'
             ], 
             item.user
         );
@@ -108,7 +110,8 @@ export const parseCommentData = (comments: CommentInfo[]) => {
             data[i].beReplied[k].user = deconstruction(
                 [
                     'avatarUrl',
-                    'nickname'
+                    'nickname',
+                    'userId'
                 ],
                 item.user
             );
