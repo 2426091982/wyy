@@ -20,8 +20,8 @@ const audio = ref<HTMLAudioElement>();
 
 
 watch(
-    () => currentMusic.play, 
-    (play) => {
+    currentMusic, 
+    ({play, }) => {
         /* 开始播放和暂停播放 */
         nextTick(async () => {
             if(audio.value == undefined) return;
