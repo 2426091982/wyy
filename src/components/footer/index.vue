@@ -7,32 +7,92 @@ import {
     SoundOutlined,
     MenuUnfoldOutlined
 } from '@ant-design/icons-vue';
+import { nextTick, onMounted, ref, watch } from 'vue';
 import { useStore } from '@/store';
 import OutIn from '@/components/out-in.vue';
 import PlayBut from '@/components/playBut.vue';
 import Icon from '@/components/icon.vue';
-import AudioPlayer from '@/components/audio.vue';
+import { handleTime } from '@/utils';
 
 const store = useStore();
 const currentMusic = store.state.currentMusic;
+const line = ref<HTMLDivElement>();
+const spot = ref<HTMLSpanElement>();
+const audio = ref<HTMLAudioElement>();
 
+// 总时间时间
+let totalT = 0;
+
+// 选择音质
 const selectQuality = (key: number) => {
     console.log(key);
 };
+
+
+const currentTime = () => {
+    if(!audio.value || !line.value || !spot.value) return;
+    const time = Math.ceil(audio.value.currentTime);
+    store.commit('currentMusic/changeCurrentTime', handleTime(time));
+    const progress = (time / totalT * 100 || 0).toFixed(2);
+    line.value.style.width = `${progress}%`;
+    spot.value.style.left = `${progress}%`;
+};
+
+const totalTime = () => {
+    if(!audio.value) return;
+    const time = totalT = Math.floor(audio.value.duration);
+    store.commit('currentMusic/changeTotalTime', handleTime(time));
+};
+
+onMounted(() => {
+    if (!audio.value || !spot.value) return;
+    let time: NodeJS.Timeout;
+    audio.value.addEventListener('play', () => {
+        currentTime();
+        clearInterval(time);
+        time = setInterval(currentTime, 1000);
+    });
+    audio.value.addEventListener('pause', () => {
+        clearInterval(time);
+    });
+    audio.value.addEventListener('canplay', () => {
+        totalTime();
+    });
+    spot.value.addEventListener('mousedown', () => {
+        // 
+    });
+});
+
+watch(
+    currentMusic, 
+    ({play, }) => {
+        /* 开始播放和暂停播放 */
+        nextTick(async () => {
+            if(audio.value == undefined) return;
+            if (play) {
+                await audio.value.play();
+            } else {
+                audio.value.pause();
+            }
+        });
+    }
+);
 </script>
 
 <template>
-    <div class="song-detail">
-        <img :src="currentMusic.pic" width="60" height="60" alt="">
-        <div class="song-info">
-            <p>{{ currentMusic.name }}</p>
-            <p>{{ currentMusic.artists }}</p>
-        </div>
-        <div class="song-like-but">
-            <OutIn>
-                <heart-outlined v-if="!currentMusic.likes" class="song-icon-like" @click="currentMusic.likes = true" />
-                <heart-filled v-else class="song-icon-like" style="color: red" @click="currentMusic.likes = false" />
-            </OutIn>
+    <div style="">
+        <div class="song-detail">
+            <img :src="currentMusic.pic" width="60" height="60" alt="">
+            <div class="song-info">
+                <p>{{ currentMusic.name }}</p>
+                <p>{{ currentMusic.artists }}</p>
+            </div>
+            <div class="song-like-but">
+                <OutIn>
+                    <heart-outlined v-if="!currentMusic.likes" class="song-icon-like" @click="currentMusic.likes = true" />
+                    <heart-filled v-else class="song-icon-like" style="color: red" @click="currentMusic.likes = false" />
+                </OutIn>
+            </div>
         </div>
     </div>
     <div class="song-control">
@@ -52,8 +112,8 @@ const selectQuality = (key: number) => {
         <div class="progress">
             <span class="progress-time">{{ currentMusic.currentTime }}</span>
             <div class="progress-line">
-                <div class="progress-play-line">
-                    <span class="spot"></span>
+                <div ref="line" class="progress-play-line">
+                    <span ref="spot" class="spot"></span>
                 </div>
             </div>
             <span class="progress-time">{{ currentMusic.totalTime }}</span>
@@ -79,7 +139,11 @@ const selectQuality = (key: number) => {
         <menu-unfold-outlined class="control-but"/>
     </div>
 
-    <AudioPlayer :currentMusic="currentMusic"></AudioPlayer>
+    <audio 
+        ref="audio" 
+        :src="currentMusic.url" 
+        style="display: none"
+    ></audio>
 </template>
 
 <style lang='less'>
@@ -197,7 +261,7 @@ const selectQuality = (key: number) => {
 
 
 .progress-play-line {
-    width: 30%;
+    width: 0%;
     height: 100%;
     border-radius: 6px;
     background-color: #1890ff;
@@ -211,7 +275,7 @@ const selectQuality = (key: number) => {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    transform: translateY(-50%);
+    transform: translate(-50%, -50%);
 }
 
 .user-options {

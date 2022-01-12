@@ -14,6 +14,8 @@ export const isObject = <T>(value: T) => typeof value === 'object' && value !== 
 
 export const isArray = Array.isArray;
 
+export const isUndef = <T>(value: T) => value == undefined;
+
 export const toMD5 = (password: string) => md5(password);
 
 // 将数据挂载到Vuex
