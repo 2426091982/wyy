@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { store } from '@/store';
+import { now } from '@/utils';
 import { message } from 'ant-design-vue';
 
 const objToFormData = <T extends {[key: string]: any}>(obj: T) => {
@@ -12,9 +13,6 @@ const objToFormData = <T extends {[key: string]: any}>(obj: T) => {
 const ask = (url: string, query: object) => {
     return `${ url }${ url.includes('?') ? '&' : '?' }${ qs.stringify(query) }`;
 };
-
-// 生成时间戳
-const now = () => Date.now();
 
 export const qs = {
     stringify<T extends object>(query: T) {

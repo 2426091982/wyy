@@ -7,60 +7,126 @@ import {
     SoundOutlined,
     MenuUnfoldOutlined
 } from '@ant-design/icons-vue';
-import { nextTick, onMounted, ref, watch } from 'vue';
+import { 
+    handleTime, 
+    throttle 
+} from '@/utils';
+import { 
+    nextTick, 
+    onMounted, 
+    ref, 
+    watch 
+} from 'vue';
 import { useStore } from '@/store';
 import OutIn from '@/components/out-in.vue';
 import PlayBut from '@/components/playBut.vue';
 import Icon from '@/components/icon.vue';
-import { handleTime } from '@/utils';
 
 const store = useStore();
 const currentMusic = store.state.currentMusic;
 const line = ref<HTMLDivElement>();
 const spot = ref<HTMLSpanElement>();
 const audio = ref<HTMLAudioElement>();
+const atWillSpot = ref<HTMLDivElement>();
 
-// 总时间时间
+// 歌曲总时间和当前时间
 let totalT = 0;
+let currentT = 0;
 
 // 选择音质
 const selectQuality = (key: number) => {
     console.log(key);
 };
 
+// 暂停或播放音乐
+const playSong = () => {
+    if (!currentMusic.url) return;
+    store.commit('currentMusic/playSong', !currentMusic.play);
+};
 
 const currentTime = () => {
     if(!audio.value || !line.value || !spot.value) return;
-    const time = Math.ceil(audio.value.currentTime);
-    store.commit('currentMusic/changeCurrentTime', handleTime(time));
-    const progress = (time / totalT * 100 || 0).toFixed(2);
+    currentT = Math.ceil(audio.value.currentTime);
+    store.commit('currentMusic/changeCurrentTime', handleTime(Math.min(currentT, totalT)));
+    const progress = (currentT / totalT * 100 || 0);
     line.value.style.width = `${progress}%`;
     spot.value.style.left = `${progress}%`;
 };
 
 const totalTime = () => {
     if(!audio.value) return;
-    const time = totalT = Math.floor(audio.value.duration);
-    store.commit('currentMusic/changeTotalTime', handleTime(time));
+    totalT = Math.floor(audio.value.duration);
+    store.commit('currentMusic/changeTotalTime', handleTime(totalT));
 };
 
 onMounted(() => {
-    if (!audio.value || !spot.value) return;
+    if (!audio.value || !spot.value || !atWillSpot.value) return;
+    let startL: number;
+    let startX: number;
+    let progress: number;
+    let el: HTMLSpanElement;
     let time: NodeJS.Timeout;
-    audio.value.addEventListener('play', () => {
+    let width: number ;
+    
+    let play = () => {
         currentTime();
         clearInterval(time);
         time = setInterval(currentTime, 1000);
-    });
-    audio.value.addEventListener('pause', () => {
+    };
+    let ended = () => {
         clearInterval(time);
-    });
-    audio.value.addEventListener('canplay', () => {
-        totalTime();
-    });
-    spot.value.addEventListener('mousedown', () => {
-        // 
-    });
+        store.commit('currentMusic/playSong', false);
+    };
+    let keydown = (e: KeyboardEvent) => {
+        if (e.code === 'Space') playSong();
+    };
+    let mouseDown = (e: MouseEvent) => {
+        console.log('mousedown');
+        clearInterval(time);
+        startX = e.pageX;
+        el = e.target as HTMLSpanElement;
+        startL = el.offsetLeft;
+        el.style.display = 'block';
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        width = atWillSpot.value!.clientWidth;
+        store.commit('currentMusic/playSong', false);
+        document.addEventListener('mousemove', mouseMove);
+        document.addEventListener('mouseup', mouseUp);
+    };
+    let mouseMove = (e: MouseEvent) => {
+        // 定位进度条
+        let curX = e.pageX - startX + startL;
+        let left = curX / width * 100;
+        left = left >= 100 ? 100 : left <= 0 ? 0 : left;
+        progress = totalT * (left / 100);
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        audio.value!.currentTime = Math.min(progress ?? audio.value?.currentTime, totalT);
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        line.value!.style.width = `${left}%`;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        spot.value!.style.left = `${left}%`;
+        // 更新当前时间
+        currentTime();
+    };
+    let mouseUp = () => {
+        // 播放音乐
+        time = setInterval(currentTime, 1000);
+        store.commit('currentMusic/playSong', true);
+        document.removeEventListener('mousemove', mouseMove);
+        document.removeEventListener('mouseup', mouseUp);
+        el.style.display = '';
+    };
+    let atWillClick = (e: Event) => {
+        console.log('click');
+        
+    };
+    document.addEventListener('keydown', throttle(keydown, 500));
+    spot.value.addEventListener('mousedown', throttle(mouseDown, 500));
+    atWillSpot.value.addEventListener('mousedown', throttle(atWillClick, 500));
+    audio.value.addEventListener('play', play);
+    audio.value.addEventListener('pause', () => clearInterval(time));
+    audio.value.addEventListener('canplay', () => totalTime());
+    audio.value.addEventListener('ended', ended);
 });
 
 watch(
@@ -80,7 +146,7 @@ watch(
 </script>
 
 <template>
-    <div style="">
+    <div :class="`song-detail-container ${!currentMusic.url ? 'opacity0' : ''}`">
         <div class="song-detail">
             <img :src="currentMusic.pic" width="60" height="60" alt="">
             <div class="song-info">
@@ -95,14 +161,14 @@ watch(
             </div>
         </div>
     </div>
-    <div class="song-control">
+    <div :class="`song-control ${!currentMusic.url ? 'unable-play' : ''}`">
         <div class="song-control-item">
             <div class="play-mode">
                 <Icon class="control-but" type="icon-liebiaoxunhuan"></Icon>
             </div>
             <step-backward-outlined class="base-size20px control-but" />
             <div class="play">
-                <PlayBut :play="currentMusic.play" @click="store.commit('currentMusic/playSong', !currentMusic.play)"></PlayBut>
+                <PlayBut :play="currentMusic.play" @click="playSong"></PlayBut>
             </div>
             <step-forward-outlined class="base-size20px control-but" /> 
             <div class="on-off-lyric">
@@ -111,7 +177,7 @@ watch(
         </div>
         <div class="progress">
             <span class="progress-time">{{ currentMusic.currentTime }}</span>
-            <div class="progress-line">
+            <div ref="atWillSpot" class="progress-line">
                 <div ref="line" class="progress-play-line">
                     <span ref="spot" class="spot"></span>
                 </div>
@@ -119,7 +185,7 @@ watch(
             <span class="progress-time">{{ currentMusic.totalTime }}</span>
         </div>
     </div>
-    <div class="user-options">
+    <div :class="`user-options ${!currentMusic.url ? 'opacity0' : ''}`">
         <a-dropdown>
             <template #overlay>
                 <a-menu class="quality-list" @click="selectQuality">
@@ -147,20 +213,35 @@ watch(
 </template>
 
 <style lang='less'>
+.opacity0 {
+    opacity: 0;
+}
+
+.unable-play {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.song-detail-container {
+    min-width: 235px;
+}
+
 .song-detail {
     display: grid;
-    grid-template-columns: 50px auto 20px;
-    justify-items: center;
+    grid-template-columns: 50px auto minmax(20px, 120px);
     align-items: center;
     gap: 15px;
-    max-width: 235px;
-    min-width: 180px;
     height: 60px;
 }
 
 .song-info {
-    overflow: hidden;
+    width: auto;
     transition: opacity 1s;
+
+    & p {
+        text-overflow: ellipsis;
+        white-space: nowrap
+    }
 }
 
 .song-detail img {
@@ -249,16 +330,14 @@ watch(
     border-radius: 4px;
     transition: background-color 0.2s, width 0.2s;
 
-    &:hover {
-        height: 6px;
-
-        .spot {
-            display: block;
-            background-color: #1890ff;
-        }
+    &:hover .spot {
+        display: block;
     }
 }
 
+.progress-time {
+    min-width: 40px;
+}
 
 .progress-play-line {
     width: 0%;
@@ -272,13 +351,16 @@ watch(
     position: absolute;
     top: 50%;
     left: 0;
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
+    background-color: #1890ff;
     transform: translate(-50%, -50%);
+    cursor: pointer;
 }
 
 .user-options {
+    max-width: 122px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -317,8 +399,13 @@ watch(
 
 <style lang="less">
 @media screen and (max-width: 900px) {
+    .song-detail-container {
+        min-width: 130px;
+    }
+
     .song-detail {
-        min-width: 100px;
+        grid-template-columns: 50px auto minmax(20px, 50px);
+        gap: 10px;
     }
 
     .song-info {
@@ -330,5 +417,4 @@ watch(
         width: 250px;
     }
 }
-
 </style>

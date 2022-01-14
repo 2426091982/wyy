@@ -18,6 +18,11 @@ export const isUndef = <T>(value: T) => value == undefined;
 
 export const toMD5 = (password: string) => md5(password);
 
+// 生成时间戳
+export const now = () => Date.now();
+
+export const clearDefaultEvent = (e: Event) => e.preventDefault();
+
 // 将数据挂载到Vuex
 export const mountData = (profile: unknown, tips = '登录成功') => {
     store.commit('user/updateUserInfo', profile); // 存储数据
@@ -65,10 +70,10 @@ export const getLoginStatus = async () => {
 
 // 退出登录
 export const loginOut = async () => {
-    await logout();
     store.commit('user/updateUserInfo', null); // 卸载数据
     store.commit('changeIsLogin', false);
     message.success('退出登录成功');
+    await logout();
 };
 
 // 退出登录
@@ -160,4 +165,36 @@ export const handleTime = (time: number) => {
             ? scound
             : '0' + scound
     }`;
+};
+
+/**
+ * 节流函数
+ * @param fn 回调函数
+ * @param wait 等待时长（ms）
+ * @param immediately 是否立即执行（默认ture）
+ * @returns 代理函数
+ */
+// eslint-disable-next-line @typescript-eslint/ban-types
+export const throttle = <T extends Function>(
+    fn: T, 
+    wait = 200
+) => {
+    let time: any;
+    let reslute :any;
+    let prev = 0;
+    return (e: any, ...args: any) => {
+        if (e && e?.code === 'Space') clearDefaultEvent(e);
+        if (now() - prev >= wait) {
+            clearTimeout(time);
+            reslute = fn.call(this, e, ...args);
+            prev = now();
+        } else if (!time) {
+            
+            time = setTimeout(() => {
+                clearTimeout(time);
+                reslute = fn.call(this, e, ...args);
+            }, wait);
+        }
+        return reslute;
+    };
 };

@@ -12,8 +12,8 @@ const currentMusic: CurrentMusic = {
         artists: '',
         likes: false,
         play: false,
-        currentTime: 0,
-        totalTime: 0,
+        currentTime: '00:00',
+        totalTime: '00:00',
     },
     mutations: {
         playSong(state, isPlay) {

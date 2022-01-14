@@ -6,8 +6,8 @@ export interface CurrentMusicState {
     artists: string;
     likes: boolean;
     pic: string;
-    currentTime: number;
-    totalTime: number;
+    currentTime: string;
+    totalTime: string;
     play: boolean;
 }
 
@@ -17,7 +17,7 @@ export interface CurrentMusic {
     mutations: {
         playSong: (state: CurrentMusicState, play: boolean) => void;
         changeState: (state: CurrentMusicState, data: CurrentMusicState) => void;
-        changeTotalTime: (state: CurrentMusicState, totalTime: number) => void;
-        changeCurrentTime: (state: CurrentMusicState, currentTime: number) => void;
+        changeTotalTime: (state: CurrentMusicState, totalTime: string) => void;
+        changeCurrentTime: (state: CurrentMusicState, currentTime: string) => void;
     };
 }

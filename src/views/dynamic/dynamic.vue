@@ -73,6 +73,8 @@ onMounted(async () => {
     }
 });
 
+let prevId = 0;
+let prevKey: number[] = [];
 let data = reactive<TData>({ 
     events: null,
 });
@@ -84,6 +86,7 @@ let errorMsg = ref('请检查你的网络之后再重新获取！');
 const store = useStore();
 const route = useRoute();
 const { name, id, } = route.query;
+const currentMusic = store.state.currentMusic;
 
 // 解析分享类型
 const parseType = (type: number) => {
@@ -125,11 +128,16 @@ const gongGe = (len: number, picH: number) => {
     };
 };
 
-const play = async (events: UserEvents[] | null, id: number) => {
+const play = async (events: UserEvents[] | null, key: number) => {
     if (!events) return;
-    let song = events[id].json.song;
+    let event = events[key];
+    let song = event.json.song;
     let info = {} as CurrentMusicState;
-    if (!events[id].play) {
+    // 上一个id和当前音乐id不一样的话将会重新请求并且播放，一样的话就是执行开始或暂停播放
+    // 播放一首新的歌曲时，上一次的值将会被重新赋值，并且key会被push到数组里面
+    if (prevId !== song.id) {
+        prevKey = [];
+        prevId = song.id;
         await checkMusic(song.id) as { code: number };
         const songUrl = await getSongUrl(song.id) as SongData[];
         songUrl.forEach((item) => {
@@ -144,10 +152,21 @@ const play = async (events: UserEvents[] | null, id: number) => {
         store.commit('currentMusic/changeState', info);
         store.commit('currentMusic/playSong', true);
     } else {
-        store.commit('currentMusic/playSong', false);
+        store.commit('currentMusic/playSong', !currentMusic.play);
     }
-    events.forEach((item, key) => {
-        item.play = id === key ? !item.play : false;
+    // 如果上一个id和当前id一样，那么就是在播放上一条动态，我们直接开始或暂停即可
+    // 如果key也是上一次就不需要循环全部
+    if (prevId === song.id) {
+        event.play = event.play || currentMusic.play;
+        if (prevKey.includes(key)) return;
+    }
+    events.forEach((item, i) => {
+        if (i === key || item.json.song.id === song.id) {
+            prevKey.push(i);
+            item.play = true;
+        } else {
+            item.play = false;
+        }
     });
 };
 
@@ -223,7 +242,7 @@ const updateCData = (source: UserEvents, cData: CommentInfo) => {
                     <p>{{ event.json.msg }}</p>
                     <div class="share-song base-pointer" @click="play(data.events, id)">
                         <div style="position: relative">
-                            <play-but v-model:play="event.play"></play-but>
+                            <play-but :play="event.play && currentMusic.play"></play-but>
                             <img :src="event.json.song.img80x80" width="40" height="40" alt="音乐">
                         </div>
                         <div class="share-song-detail">
