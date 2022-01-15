@@ -27,7 +27,7 @@ const currentMusic = store.state.currentMusic;
 const line = ref<HTMLDivElement>();
 const spot = ref<HTMLSpanElement>();
 const audio = ref<HTMLAudioElement>();
-const atWillSpot = ref<HTMLDivElement>();
+const trunk = ref<HTMLDivElement>();
 
 // 歌曲总时间和当前时间
 let totalT = 0;
@@ -36,6 +36,12 @@ let currentT = 0;
 // 选择音质
 const selectQuality = (key: number) => {
     console.log(key);
+};
+
+const setProgress = (progress: number | string) => {
+    if (!line.value || !spot.value) return;
+    line.value.style.width = `${progress}%`;
+    spot.value.style.left = `${progress}%`;
 };
 
 // 暂停或播放音乐
@@ -49,8 +55,7 @@ const currentTime = () => {
     currentT = Math.ceil(audio.value.currentTime);
     store.commit('currentMusic/changeCurrentTime', handleTime(Math.min(currentT, totalT)));
     const progress = (currentT / totalT * 100 || 0);
-    line.value.style.width = `${progress}%`;
-    spot.value.style.left = `${progress}%`;
+    setProgress(progress);
 };
 
 const totalTime = () => {
@@ -59,14 +64,31 @@ const totalTime = () => {
     store.commit('currentMusic/changeTotalTime', handleTime(totalT));
 };
 
+const volume = (play: boolean) => {
+    return new Promise((resolve, reject) => {
+        audio.value!.volume = play ? 0 : 1;
+        const fn = () => {
+            let vol = audio.value!.volume;
+            if (play && vol >= 0.95) return resolve(clearInterval(handle));
+            if (!play && vol <= 0.05) return resolve(clearInterval(handle));
+            if (play) {
+                audio.value!.volume += 0.05;
+            } else {
+                audio.value!.volume -= 0.05;
+            }
+        };
+        let handle: any = setInterval(fn, 80);
+    });
+};
+
 onMounted(() => {
-    if (!audio.value || !spot.value || !atWillSpot.value) return;
+    if (!audio.value || !spot.value || !trunk.value) return;
     let startL: number;
     let startX: number;
     let progress: number;
     let el: HTMLSpanElement;
     let time: NodeJS.Timeout;
-    let width: number ;
+    let width: number;
     
     let play = () => {
         currentTime();
@@ -81,63 +103,75 @@ onMounted(() => {
         if (e.code === 'Space') playSong();
     };
     let mouseDown = (e: MouseEvent) => {
-        console.log('mousedown');
+        e.stopPropagation();
         clearInterval(time);
         startX = e.pageX;
         el = e.target as HTMLSpanElement;
         startL = el.offsetLeft;
         el.style.display = 'block';
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        width = atWillSpot.value!.clientWidth;
+        width = trunk.value!.clientWidth;
         store.commit('currentMusic/playSong', false);
         document.addEventListener('mousemove', mouseMove);
         document.addEventListener('mouseup', mouseUp);
     };
     let mouseMove = (e: MouseEvent) => {
+        if (!audio.value) return;
         // 定位进度条
         let curX = e.pageX - startX + startL;
         let left = curX / width * 100;
         left = left >= 100 ? 100 : left <= 0 ? 0 : left;
         progress = totalT * (left / 100);
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        audio.value!.currentTime = Math.min(progress ?? audio.value?.currentTime, totalT);
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        line.value!.style.width = `${left}%`;
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        spot.value!.style.left = `${left}%`;
+        audio.value.currentTime = Math.min(progress ?? audio.value.currentTime, totalT);
+        setProgress(left);
         // 更新当前时间
         currentTime();
     };
     let mouseUp = () => {
+        if (!audio.value) return;
         // 播放音乐
-        time = setInterval(currentTime, 1000);
-        store.commit('currentMusic/playSong', true);
+        clearInterval(time);
+        if (audio.value.currentTime !== totalT) {
+            playSong();
+            time = setInterval(currentTime, 1000);
+        } else {
+            audio.value.currentTime = audio.value.duration;
+        }
         document.removeEventListener('mousemove', mouseMove);
         document.removeEventListener('mouseup', mouseUp);
         el.style.display = '';
     };
-    let atWillClick = (e: Event) => {
-        console.log('click');
-        
+    let atWillClick = (e: MouseEvent) => {
+        if (!trunk.value || !audio.value) return;
+        let left = trunk.value.offsetLeft;
+        let width =  trunk.value.clientWidth;
+        let progress = ((e.pageX - left) / width * 100);
+        progress = +progress.toFixed(2);
+        setProgress(progress);
+        audio.value.currentTime = totalT * (progress / 100); 
+        currentTime();
     };
     document.addEventListener('keydown', throttle(keydown, 500));
     spot.value.addEventListener('mousedown', throttle(mouseDown, 500));
-    atWillSpot.value.addEventListener('mousedown', throttle(atWillClick, 500));
-    audio.value.addEventListener('play', play);
-    audio.value.addEventListener('pause', () => clearInterval(time));
+    trunk.value.addEventListener('mousedown', throttle(atWillClick));
     audio.value.addEventListener('canplay', () => totalTime());
     audio.value.addEventListener('ended', ended);
+    audio.value.addEventListener('play', play);
+    audio.value.addEventListener('pause', () => clearInterval(time));
+    // audio.value.addEventListener('volumechange', (e) => console.log(e));
 });
 
 watch(
-    currentMusic, 
-    ({play, }) => {
+    () => currentMusic.play, 
+    (val) => {
         /* 开始播放和暂停播放 */
         nextTick(async () => {
             if(audio.value == undefined) return;
-            if (play) {
+            if (val) {
                 await audio.value.play();
+                await volume(true);
             } else {
+                await volume(false);
                 audio.value.pause();
             }
         });
@@ -177,7 +211,7 @@ watch(
         </div>
         <div class="progress">
             <span class="progress-time">{{ currentMusic.currentTime }}</span>
-            <div ref="atWillSpot" class="progress-line">
+            <div ref="trunk" class="progress-line">
                 <div ref="line" class="progress-play-line">
                     <span ref="spot" class="spot"></span>
                 </div>
@@ -223,7 +257,8 @@ watch(
 }
 
 .song-detail-container {
-    min-width: 235px;
+    width: 235px;
+    overflow: hidden;
 }
 
 .song-detail {
@@ -328,10 +363,27 @@ watch(
     height: 4px;
     background-color: #dddddd;
     border-radius: 4px;
-    transition: background-color 0.2s, width 0.2s;
+    transition-property: background-color, width, height;
+    transition-duration: 0.2s;
 
-    &:hover .spot {
-        display: block;
+    &:active {
+        height: 6px;
+
+        .spot {
+            width: 12px;
+            height: 12px;
+            display: block;
+        }
+    }
+
+    &:hover {
+        height: 6px;
+
+        .spot {
+            width: 12px;
+            height: 12px;
+            display: block;
+        }
     }
 }
 
@@ -356,6 +408,8 @@ watch(
     border-radius: 50%;
     background-color: #1890ff;
     transform: translate(-50%, -50%);
+    transition-property: width, height;
+    transition-duration: 0.2s;
     cursor: pointer;
 }
 
@@ -400,7 +454,7 @@ watch(
 <style lang="less">
 @media screen and (max-width: 900px) {
     .song-detail-container {
-        min-width: 130px;
+        width: 130px;
     }
 
     .song-detail {
