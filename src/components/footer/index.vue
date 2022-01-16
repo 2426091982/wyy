@@ -64,20 +64,34 @@ const totalTime = () => {
     store.commit('currentMusic/changeTotalTime', handleTime(totalT));
 };
 
-const volume = (play: boolean) => {
-    return new Promise((resolve, reject) => {
-        audio.value!.volume = play ? 0 : 1;
+/**
+ * 逐渐大声播放小声暂停
+ * @param play true播放 false暂停
+ */
+const gradually = (play: boolean) => {
+    return new Promise((resolve) => {
+        /* eslint-disable @typescript-eslint/no-non-null-assertion */
+        const oldVol = audio.value!.volume;
+        audio.value!.volume = play ? 0 : oldVol;
+        clearInterval(timeout);
         const fn = () => {
-            let vol = audio.value!.volume;
-            if (play && vol >= 0.95) return resolve(clearInterval(handle));
-            if (!play && vol <= 0.05) return resolve(clearInterval(handle));
+            let newVal = audio.value!.volume;
             if (play) {
-                audio.value!.volume += 0.05;
+                newVal = +Math.min(oldVol, newVal += 0.05).toFixed(2);
+                audio.value!.volume = newVal;
             } else {
-                audio.value!.volume -= 0.05;
+                newVal = +Math.max(0, newVal -= 0.05).toFixed(2);
+                audio.value!.volume = newVal;
+            }
+            if (
+                newVal === oldVol && play
+                || newVal === 0 && !play
+            ) {
+                clearInterval(timeout);
+                resolve(audio.value!.volume = 1);
             }
         };
-        let handle: any = setInterval(fn, 80);
+        timeout = setInterval(fn, 50);
     });
 };
 
@@ -91,8 +105,8 @@ onMounted(() => {
     let width: number;
     
     let play = () => {
-        currentTime();
         clearInterval(time);
+        currentTime();
         time = setInterval(currentTime, 1000);
     };
     let ended = () => {
@@ -154,29 +168,43 @@ onMounted(() => {
     document.addEventListener('keydown', throttle(keydown, 500));
     spot.value.addEventListener('mousedown', throttle(mouseDown, 500));
     trunk.value.addEventListener('mousedown', throttle(atWillClick));
-    audio.value.addEventListener('canplay', () => totalTime());
+    audio.value.addEventListener('canplay', totalTime);
     audio.value.addEventListener('ended', ended);
     audio.value.addEventListener('play', play);
     audio.value.addEventListener('pause', () => clearInterval(time));
-    // audio.value.addEventListener('volumechange', (e) => console.log(e));
 });
 
-watch(
-    () => currentMusic.play, 
-    (val) => {
-        /* 开始播放和暂停播放 */
-        nextTick(async () => {
-            if(audio.value == undefined) return;
-            if (val) {
-                await audio.value.play();
-                await volume(true);
-            } else {
-                await volume(false);
-                audio.value.pause();
-            }
-        });
-    }
-);
+let timeout: NodeJS.Timeout;
+const handlePlay = <T>(val: T) => {
+    /* 开始播放和暂停播放 */
+    const start = async () => {
+        if(audio.value == undefined) return;
+        // 如果音频没有加载回来那么久会走这里
+        if (!audio.value.duration) {
+            const wait = () => {
+                start();
+                audio.value!.removeEventListener('canplay', wait);
+            };
+            audio.value.addEventListener('canplay', wait);
+            return;
+        }
+        if (typeof val === 'string') {
+            await audio.value.play();
+            gradually(true);
+            return;
+        }
+        if (val) {
+            await audio.value.play();
+            gradually(true);
+        } else {
+            await gradually(false);
+            audio.value.pause();
+        }
+    };
+    nextTick(start);
+};
+watch(() => currentMusic.url, handlePlay);
+watch(() => currentMusic.play, handlePlay);
 </script>
 
 <template>
@@ -238,9 +266,9 @@ watch(
         </div>
         <menu-unfold-outlined class="control-but"/>
     </div>
-
     <audio 
         ref="audio" 
+        preload="auto"
         :src="currentMusic.url" 
         style="display: none"
     ></audio>
