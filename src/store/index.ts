@@ -7,6 +7,8 @@ import { State } from './types';
 import { InjectionKey } from 'vue';
 import user from './modules/user';
 import currentMusic from './modules/currentMusic';
+import currentPlayList from './modules/currentPlayList';
+
 
 export const store = createStore({
     state: {
@@ -25,6 +27,7 @@ export const store = createStore({
     modules: {
         user,
         currentMusic,
+        currentPlayList,
     },
 });
 

@@ -16,7 +16,6 @@ import { ref } from "@vue/reactivity";
 import { PropType } from "@vue/runtime-core";
 import { parseDate } from '@/utils';
 import { message } from 'ant-design-vue';
-import { parseCommentData } from '@/utils/parseData';
 
 const { sourceData, } = defineProps({
     sourceData: {
@@ -59,6 +58,7 @@ const reply = (name: string, id: number) => {
     commentId.value = cid = id;
 };
 
+type CommentRes = { code: number, comment: CommentInfo };
 const sendComment = async (threadId:string) => {
     if (remain.value === 140) {
         message.error('要先输入内容才可以发送评论哦！');
@@ -66,7 +66,7 @@ const sendComment = async (threadId:string) => {
     }
     const value = commentText.value;
     const content = t === 1 ? value : value.slice(value.indexOf('：') + 1);
-    const { code, comment, } = await postComment(t, 6, threadId, content, commentId.value) as { code: number, comment: CommentInfo };
+    const { code, comment, } = await postComment(t, 6, threadId, content, commentId.value) as CommentRes;
     if ( code !== 200) {
         message.error('评论失败，稍后再试！');
         return;
@@ -93,6 +93,12 @@ const textareaChange = (e: Event) => {
         commentId.value ? commentId.value = undefined : null;
     }
 };
+// 清除冒泡
+const stopPropagation = (e: KeyboardEvent) => {
+    if (e.code === 'Space') {
+        e.stopPropagation();
+    } 
+};
 </script>
 
 <template>
@@ -106,6 +112,7 @@ const textareaChange = (e: Event) => {
                     :value="commentText"
                     :maxlength="max"
                     @input="textareaChange"
+                    @keydown="stopPropagation"
                 ></textarea>
                 <span class="text-count">{{ 140 - remain }}/140</span>
             </div>

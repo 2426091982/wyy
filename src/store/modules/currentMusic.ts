@@ -28,6 +28,19 @@ const currentMusic: CurrentMusic = {
         changeTotalTime(state, totalTime) {
             state.totalTime = totalTime;
         },
+        clearState(state) {
+            // 重置数据
+            state.id = 0,
+            state.url = '';
+            state.pic = '';
+            state.name = '';
+            state.br = 1200;
+            state.artists = '';
+            state.likes = false;
+            state.play = false;
+            state.currentTime = '00:00';
+            state.totalTime = '00:00';
+        },
     },
 };
 

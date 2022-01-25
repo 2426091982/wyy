@@ -15,6 +15,7 @@ export interface CurrentMusic {
     namespaced: true;
     state: CurrentMusicState;
     mutations: {
+        clearState: (state: CurrentMusicState) => void;
         playSong: (state: CurrentMusicState, play: boolean) => void;
         changeState: (state: CurrentMusicState, data: CurrentMusicState) => void;
         changeTotalTime: (state: CurrentMusicState, totalTime: string) => void;

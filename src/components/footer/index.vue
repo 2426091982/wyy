@@ -5,10 +5,12 @@ import {
     StepBackwardOutlined,
     StepForwardOutlined,
     SoundOutlined,
+    FolderAddOutlined,
     MenuUnfoldOutlined
 } from '@ant-design/icons-vue';
 import { 
     handleTime, 
+    now, 
     throttle 
 } from '@/utils';
 import { 
@@ -17,39 +19,60 @@ import {
     ref, 
     watch 
 } from 'vue';
+import { getLyric } from '@/api';
+import { Lyic } from '@/types/lyric';
 import { useStore } from '@/store';
 import OutIn from '@/components/out-in.vue';
 import PlayBut from '@/components/playBut.vue';
 import Icon from '@/components/icon.vue';
+import currentPlayList from '@/components/playList/currentPlayList.vue';
 
-const store = useStore();
-const currentMusic = store.state.currentMusic;
+const main = ref();
+const sound = ref(100);
+const showLatelyList = ref(false);
+const showLyric = ref(false);
+const lyric = ref('网抑云音乐');
 const line = ref<HTMLDivElement>();
 const spot = ref<HTMLSpanElement>();
 const audio = ref<HTMLAudioElement>();
 const trunk = ref<HTMLDivElement>();
+const store = useStore();
+const currentMusic = store.state.currentMusic;
+const playList = store.state.currentPlayList;
 
 // 歌曲总时间和当前时间
 let totalT = 0;
 let currentT = 0;
 
-// 选择音质
+/**
+ * 选择音质
+ * @param key 音质的质量
+ */
 const selectQuality = (key: number) => {
     console.log(key);
 };
 
+/**
+ * 设置当前进度条的位置
+ * @param progress 位置（百分比）
+ */
 const setProgress = (progress: number | string) => {
     if (!line.value || !spot.value) return;
     line.value.style.width = `${progress}%`;
     spot.value.style.left = `${progress}%`;
 };
 
-// 暂停或播放音乐
+/**
+ * 开始（暂停）播放
+ */
 const playSong = () => {
     if (!currentMusic.url) return;
     store.commit('currentMusic/playSong', !currentMusic.play);
 };
 
+/**
+ * 设置歌曲当前播放时间
+ */
 const currentTime = () => {
     if(!audio.value || !line.value || !spot.value) return;
     currentT = Math.ceil(audio.value.currentTime);
@@ -58,6 +81,9 @@ const currentTime = () => {
     setProgress(progress);
 };
 
+/**
+ * 设置歌曲总时间
+ */
 const totalTime = () => {
     if(!audio.value) return;
     totalT = Math.floor(audio.value.duration);
@@ -95,6 +121,91 @@ const gradually = (play: boolean) => {
     });
 };
 
+let timeout: NodeJS.Timeout;
+let wait = false;
+
+/**
+ * 开始或暂停播放
+ * @param val true播放 false暂停
+ */
+const handlePlay = <T>(val: T) => {
+    /* 开始播放和暂停播放 */
+    const handle = async () => {
+        if(audio.value == undefined || wait) return;
+        // 如果音频没有加载回来那么久会走这里
+        if (!audio.value.duration) {
+            wait = true;
+            const waitFn = () => {
+                handle();
+                wait = false;
+                audio.value!.removeEventListener('canplay', waitFn);
+            };
+            audio.value.addEventListener('canplay', waitFn);
+        } else if (typeof val === 'string') {
+            await audio.value.play();
+            gradually(true);
+        } else if (val) {
+            await audio.value.play();
+            gradually(true);
+        } else {
+            await gradually(false);
+            audio.value.pause();
+        }
+    };
+    nextTick(handle);
+};
+
+/**
+ * 音乐地址发生改变播最新音乐，并且显示歌词的话就会加载
+ * @param newUrl 最新的音乐地址
+ */
+const watchUrl = async (newUrl: string) => {
+    handlePlay(newUrl);
+    if (showLyric.value) {
+        const {
+            code, 
+            lrc,
+        } = await getLyric(currentMusic.id) as Lyic;
+        if (code === 200) {
+            console.log(lrc.lyric);
+            lyric.value = lrc.lyric;
+        } else {
+            lyric.value = '获取歌词失败！';
+        }
+    }
+};
+
+const changeSound = (value: number) => {
+    if (!audio.value) return;
+    audio.value.volume = value / 100;
+};
+
+/* 对点击其他地方进行关闭的处理 */
+const clickOuterClose = (e: Event) => {
+    const el = e.target as HTMLElement;
+    const lists = document.querySelectorAll('.showLatelyList');
+    if (showLatelyList.value) return;
+    for (let i = 0; i < lists.length; i++) if (lists[i].contains(el)) return;
+    showLatelyList.value = false;
+    document.removeEventListener('click', clickOuterClose);
+};
+
+/* 切换列表的显示隐藏 */
+const switchshowLatelyList = () => {
+    showLatelyList.value = !showLatelyList.value;
+    if (showLatelyList.value) {
+        document.addEventListener('click', clickOuterClose);
+    }
+};
+
+/* 清空当前播放列表 */
+const clearList = () => {
+    console.log(playList, currentMusic);
+    
+    store.commit('currentMusic/clearState');
+    store.commit('currentPlayList/clearList');
+};
+
 onMounted(() => {
     if (!audio.value || !spot.value || !trunk.value) return;
     let startL: number;
@@ -103,19 +214,37 @@ onMounted(() => {
     let el: HTMLSpanElement;
     let time: NodeJS.Timeout;
     let width: number;
-    
+    /* 点击播放 */
     let play = () => {
         clearInterval(time);
         currentTime();
         time = setInterval(currentTime, 1000);
     };
+    /* 可以播放 */
+    let canplay = () => {
+        wait = false;
+        totalTime();
+        const currentPlayItem = Object.assign({
+            composer: currentMusic.artists,
+            name: currentMusic.name,
+            playTime: now(),
+            id: currentMusic.id,
+            totalTime: currentMusic.totalTime,
+        }, currentMusic);
+        store.commit('currentPlayList/updateState', currentPlayItem);
+    };
+    /* 结束播放 */
     let ended = () => {
         clearInterval(time);
         store.commit('currentMusic/playSong', false);
     };
+    /* 按下空格进行播放或停止 */
     let keydown = (e: KeyboardEvent) => {
         if (e.code === 'Space') playSong();
     };
+    /**
+     * 按下歌曲进度条小圆点定位记录起始位置
+     */
     let mouseDown = (e: MouseEvent) => {
         e.stopPropagation();
         clearInterval(time);
@@ -129,6 +258,9 @@ onMounted(() => {
         document.addEventListener('mousemove', mouseMove);
         document.addEventListener('mouseup', mouseUp);
     };
+    /**
+     * 拖动歌曲进度条小圆点定位到歌曲时间
+     */
     let mouseMove = (e: MouseEvent) => {
         if (!audio.value) return;
         // 定位进度条
@@ -141,6 +273,9 @@ onMounted(() => {
         // 更新当前时间
         currentTime();
     };
+    /**
+     * 松开歌曲进度条小圆点定位到歌曲时间
+     */
     let mouseUp = () => {
         if (!audio.value) return;
         // 播放音乐
@@ -155,6 +290,9 @@ onMounted(() => {
         document.removeEventListener('mouseup', mouseUp);
         el.style.display = '';
     };
+    /**
+     * 随机点击进度条，定位到点击的位置的歌曲时间
+     */
     let atWillClick = (e: MouseEvent) => {
         if (!trunk.value || !audio.value) return;
         let left = trunk.value.offsetLeft;
@@ -165,46 +303,21 @@ onMounted(() => {
         audio.value.currentTime = totalT * (progress / 100); 
         currentTime();
     };
+    // 获取当前audio的音量赋值到音量条上
+    sound.value = audio.value.volume * 100;
+    main.value = document.querySelector('main');
+    // 绑定事件
     document.addEventListener('keydown', throttle(keydown, 500));
     spot.value.addEventListener('mousedown', throttle(mouseDown, 500));
     trunk.value.addEventListener('mousedown', throttle(atWillClick));
-    audio.value.addEventListener('canplay', totalTime);
+    audio.value.addEventListener('canplay', canplay);
     audio.value.addEventListener('ended', ended);
     audio.value.addEventListener('play', play);
     audio.value.addEventListener('pause', () => clearInterval(time));
 });
 
-let timeout: NodeJS.Timeout;
-const handlePlay = <T>(val: T) => {
-    /* 开始播放和暂停播放 */
-    const start = async () => {
-        if(audio.value == undefined) return;
-        // 如果音频没有加载回来那么久会走这里
-        if (!audio.value.duration) {
-            const wait = () => {
-                start();
-                audio.value!.removeEventListener('canplay', wait);
-            };
-            audio.value.addEventListener('canplay', wait);
-            return;
-        }
-        if (typeof val === 'string') {
-            await audio.value.play();
-            gradually(true);
-            return;
-        }
-        if (val) {
-            await audio.value.play();
-            gradually(true);
-        } else {
-            await gradually(false);
-            audio.value.pause();
-        }
-    };
-    nextTick(start);
-};
-watch(() => currentMusic.url, handlePlay);
 watch(() => currentMusic.play, handlePlay);
+watch(() => currentMusic.url, watchUrl);
 </script>
 
 <template>
@@ -233,8 +346,8 @@ watch(() => currentMusic.play, handlePlay);
                 <PlayBut :play="currentMusic.play" @click="playSong"></PlayBut>
             </div>
             <step-forward-outlined class="base-size20px control-but" /> 
-            <div class="on-off-lyric">
-                <span class="control-but base-pointer">词</span>
+            <div :class="showLyric ? 'show-lyric' : ''">
+                <span class="control-but base-pointer" @click="showLyric = !showLyric">词</span>
             </div>
         </div>
         <div class="progress">
@@ -262,10 +375,44 @@ watch(() => currentMusic.play, handlePlay);
             </span>
         </a-dropdown>
         <div class="voice">
-            <sound-outlined class="control-but" />
+            <a-popover trigger="hover">
+                <template #content>
+                    <a-slider 
+                        v-model:value="sound" 
+                        vertical 
+                        :tip-formatter="null"
+                        @change="changeSound" 
+                        class="sound-slider" 
+                    />
+                </template>
+                <sound-outlined class="control-but"/>
+            </a-popover>
         </div>
-        <menu-unfold-outlined class="control-but"/>
+        <menu-unfold-outlined class="control-but" @click.stop="switchshowLatelyList"/>
     </div>
+    <a-drawer
+        v-model:visible="showLatelyList"
+        class="lately-list showLatelyList"
+        placement="right"
+        :mask="false"
+        :closable="false"
+        :getContainer="main"
+    >
+        <template #title>
+            <h3>当前播放</h3>
+            <div class="sub-title">
+                <div class="song-total">共 {{ playList.total }} 首</div>
+                <div>
+                    <span class="collect-all base-pointer"> 
+                        <folder-add-outlined />
+                        收藏全部 
+                    </span>
+                    <span class="clear-all base-pointer" @click="clearList"> 清空列表 </span>
+                </div>
+            </div>
+        </template>
+        <current-play-list></current-play-list>
+    </a-drawer>
     <audio 
         ref="audio" 
         preload="auto"
@@ -377,6 +524,10 @@ watch(() => currentMusic.play, handlePlay);
     }
 }
 
+.show-lyric > span {
+    color: #1890ff;
+    font-weight: 700;
+}
 
 .progress {
     display: flex;
@@ -476,6 +627,43 @@ watch(() => currentMusic.play, handlePlay);
     padding: 2px;
     font-size: 12px;
     text-align: center;
+}
+
+.sound-slider {
+    margin: 5px 0;
+    height: 100px;
+    padding-bottom: 20px;    
+}
+
+.lately-list {
+    margin-top: 70px;
+    height: calc(100% - 160px);
+}
+
+.lately-list .ant-drawer-header-title, 
+.lately-list .ant-drawer-title,
+.sub-title {
+    width: 100%;
+}
+
+.sub-title {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+}
+
+.song-total {
+    color: #999999;
+    font-size: 10px;
+}
+
+.clear-all {
+    margin-left: 10px;
+    color: #1890ff;
+}
+
+.lately-list .ant-drawer-body {
+    padding: 0;
 }
 </style>
 

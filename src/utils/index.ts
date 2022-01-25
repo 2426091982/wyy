@@ -4,10 +4,9 @@ import {
     logout 
 } from '@/api';
 import { store } from '@/store';
-import { UserInfo } from '@/store/types/user';
+import { JsonData, UserInfo } from '@/store/types/user';
 import { message } from "ant-design-vue";
 import { InferComment } from './types';
-
 import md5 from "md5";
 
 export const isObject = <T>(value: T) => typeof value === 'object' && value !== null; 
@@ -20,6 +19,10 @@ export const toMD5 = (password: string) => md5(password);
 
 // 生成时间戳
 export const now = () => Date.now();
+
+export const setItem = (key: string, value: any) => localStorage.setItem(key, JSON.stringify(value));
+
+export const getItem = (key: string) => JSON.parse(localStorage.getItem(key) || 'null');
 
 export const clearDefaultEvent = (e: Event) => e.preventDefault();
 
@@ -165,6 +168,16 @@ export const handleTime = (time: number) => {
             ? scound
             : '0' + scound
     }`;
+};
+
+/**
+ * 格式化作家名称：xxx/xxx 
+ * @param artists 需要解析的对象
+ */
+export const parseArtists = (artists: JsonData['song']['artists']) => {
+    let names = ``;
+    artists.forEach((item) => names += `/${item.name}`);
+    return names.slice(1);
 };
 
 /**

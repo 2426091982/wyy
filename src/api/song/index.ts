@@ -7,3 +7,7 @@ export const checkMusic = (id: number) => {
 export const getSongUrl = (id: number) => {
     return http.get('/song/url', { id, });
 };
+
+export const getLyric = (id: number) => {
+    return http.get('/lyric', { id, });
+};

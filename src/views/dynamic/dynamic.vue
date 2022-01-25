@@ -8,7 +8,6 @@ import {
     Comments,
     CommentInfo,
     DyismaData, 
-    JsonData, 
     UserEvents
 } from '@/store/types/user';
 import {
@@ -29,11 +28,12 @@ import {
 } from '@/utils/parseData';
 import { 
     isLogin,
+    parseArtists,
     parseDate 
 } from '@/utils';
 import { useStore } from '@/store';
 import { useRoute } from "vue-router";
-import { SongData } from '@/store/types/song';
+import { SongData } from "@/types/song";
 import { CurrentMusicState } from '@/store/types/CurrentMusic';
 import Loading from '@/components/loading.vue';
 import Comment from '@/components/comment/comment.vue';
@@ -82,11 +82,11 @@ let isMore = ref<boolean>(false);
 let loading = ref<boolean>(true);
 let error = ref<boolean>(false);
 let errorMsg = ref('请检查你的网络之后再重新获取！');
-
 const store = useStore();
 const route = useRoute();
 const { name, id, } = route.query;
 const currentMusic = store.state.currentMusic;
+const currentPlayList = store.state.currentPlayList;
 
 // 解析分享类型
 const parseType = (type: number) => {
@@ -94,13 +94,6 @@ const parseType = (type: number) => {
     case 18:
         return '分享单曲';
     }
-};
-
-// 格式化作家名称 xxx/xxx
-const artists = (artists: JsonData['song']['artists']) => {
-    let names = ``;
-    artists.forEach((item) => names += `/${item.name}`);
-    return names.slice(1);
 };
 
 // 计算九宫格图片样式
@@ -133,9 +126,10 @@ const play = async (events: UserEvents[] | null, key: number) => {
     let event = events[key];
     let song = event.json.song;
     let info = {} as CurrentMusicState;
+    const len = currentPlayList.list.length;
     // 上一个id和当前音乐id不一样的话将会重新请求并且播放，一样的话就是执行开始或暂停播放
     // 播放一首新的歌曲时，上一次的值将会被重新赋值，并且key会被push到数组里面
-    if (prevId !== song.id) {
+    if (prevId !== song.id || !len) {
         prevKey = [];
         prevId = song.id;
         await checkMusic(song.id) as { code: number };
@@ -147,7 +141,7 @@ const play = async (events: UserEvents[] | null, key: number) => {
         info.id = song.id;
         info.name = song.name;
         info.pic = song.img80x80;
-        info.artists = artists(song.artists);
+        info.artists = parseArtists(song.artists);
         info.likes = false; // 去喜欢的音乐列表中匹配
         store.commit('currentMusic/changeState', info);
         store.commit('currentMusic/playSong', true);
@@ -157,8 +151,8 @@ const play = async (events: UserEvents[] | null, key: number) => {
     // 如果上一个id和当前id一样，那么就是在播放上一条动态，我们直接开始或暂停即可
     // 如果key也是上一次就不需要循环全部
     if (prevId === song.id) {
-        event.play = event.play || currentMusic.play;
-        if (prevKey.includes(key)) return;
+        event.play = !event.play;
+        if (prevKey.includes(key) && len) return;
     }
     events.forEach((item, i) => {
         if (i === key || item.json.song.id === song.id) {
@@ -240,9 +234,9 @@ const updateCData = (source: UserEvents, cData: CommentInfo) => {
                 </a-space>
                 <div class="share-detail base-margin-left50px">
                     <p>{{ event.json.msg }}</p>
-                    <div class="share-song base-pointer" @click="play(data.events, id)">
+                    <div class="share-song showLatelyList base-pointer" @click="play(data.events, id)">
                         <div style="position: relative">
-                            <play-but :play="event.play && currentMusic.play"></play-but>
+                            <play-but :play="event.play || currentMusic.id === event.id && currentMusic.play"></play-but>
                             <img :src="event.json.song.img80x80" width="40" height="40" alt="音乐">
                         </div>
                         <div class="share-song-detail">
@@ -253,7 +247,7 @@ const updateCData = (source: UserEvents, cData: CommentInfo) => {
                                 </span>
                             </span>
                             <span>
-                                {{ artists(event.json.song.artists) }} <!-- 作家 -->
+                                {{ parseArtists(event.json.song.artists) }} <!-- 作家 -->
                             </span>
                         </div>
                     </div>

@@ -87,7 +87,6 @@ body {
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
-
 }
 
 ::-webkit-scrollbar-track {
@@ -97,7 +96,7 @@ body {
 }
 
 :hover::-webkit-scrollbar-track {
-    box-shadow: inset 0px 0px 10px #999;
+    box-shadow: inset 0px 0px rgba(0, 0, 0, 0);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -174,6 +173,12 @@ body {
     min-width: 495px;
     overflow-x: hidden;
     overflow-y: scroll;
+}
+
+.ellipsis {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .ant-layout-footer {
