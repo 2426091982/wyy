@@ -7,8 +7,11 @@ import { State } from './types';
 import { InjectionKey } from 'vue';
 import user from './modules/user';
 import currentMusic from './modules/currentMusic';
-import currentPlayList from './modules/currentPlayList';
-
+import playList from './modules/playList';
+import recommendSongSheet from './modules/recommendSongSheet';
+import privateContent from './modules/privateContent';
+import newSong from './modules/newSong';
+import recommendSongs from './modules/recommendSongs';
 
 export const store = createStore({
     state: {
@@ -27,7 +30,11 @@ export const store = createStore({
     modules: {
         user,
         currentMusic,
-        currentPlayList,
+        playList,
+        recommendSongSheet,
+        privateContent,
+        newSong,
+        recommendSongs,
     },
 });
 

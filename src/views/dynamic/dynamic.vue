@@ -34,7 +34,7 @@ import {
 import { useStore } from '@/store';
 import { useRoute } from "vue-router";
 import { SongData } from "@/types/song";
-import { CurrentMusicState } from '@/store/types/CurrentMusic';
+import { CurrentMusicState } from '@/store/types/currentMusic';
 import Loading from '@/components/loading.vue';
 import Comment from '@/components/comment/comment.vue';
 import PlayBut from '@/components/playBut.vue';
@@ -86,7 +86,7 @@ const store = useStore();
 const route = useRoute();
 const { name, id, } = route.query;
 const currentMusic = store.state.currentMusic;
-const currentPlayList = store.state.currentPlayList;
+const playList = store.state.playList;
 
 // 解析分享类型
 const parseType = (type: number) => {
@@ -126,7 +126,7 @@ const play = async (events: UserEvents[] | null, key: number) => {
     let event = events[key];
     let song = event.json.song;
     let info = {} as CurrentMusicState;
-    const len = currentPlayList.list.length;
+    const len = playList.lately.length;
     // 上一个id和当前音乐id不一样的话将会重新请求并且播放，一样的话就是执行开始或暂停播放
     // 播放一首新的歌曲时，上一次的值将会被重新赋值，并且key会被push到数组里面
     if (prevId !== song.id || !len) {
@@ -236,7 +236,7 @@ const updateCData = (source: UserEvents, cData: CommentInfo) => {
                     <p>{{ event.json.msg }}</p>
                     <div class="share-song showLatelyList base-pointer" @click="play(data.events, id)">
                         <div style="position: relative">
-                            <play-but :play="event.play || currentMusic.id === event.id && currentMusic.play"></play-but>
+                            <play-but :play="(event.play || currentMusic.id === event.id) && currentMusic.play"></play-but>
                             <img :src="event.json.song.img80x80" width="40" height="40" alt="音乐">
                         </div>
                         <div class="share-song-detail">

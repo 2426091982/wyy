@@ -63,10 +63,10 @@ class Request {
         });
     }
 
-    get(path: string, query: object, time = false) {
+    get(path: string, query?: object, time = false) {
         let url = `${this.baseUrl}${path}`;
-        time ? query['time'] = now() : null;
-        url = `${ask(url, query)}`;
+        time && query ? query['time'] = now() : null;
+        url = query ? `${ask(url, query)}` : url;
         return this.send(url, 'get');
     }
 

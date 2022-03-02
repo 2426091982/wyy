@@ -53,7 +53,8 @@ export interface JsonData {
         alias: string[] // 歌曲别名
     };
 }
-interface Artists { // 作家
+
+export interface Artists { // 作家
     id: number;
     name: string;
     picUrl: string;

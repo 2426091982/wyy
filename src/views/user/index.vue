@@ -123,6 +123,7 @@ const changeIsTwoCodeLogin = () => isTwoCodeLogin.state = !isTwoCodeLogin.state;
     transform: translateX(-50%);
     overflow: hidden;
     user-select: none;
+    z-index: 10000;
 }
 
 .portability {

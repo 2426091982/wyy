@@ -3,15 +3,15 @@ import { useStore } from '@/store';
 
 const store = useStore();
 const currentMusic = store.state.currentMusic;
-const currentPlayList = store.state.currentPlayList;
+const playList = store.state.playList.lately;
 </script>
 
 <template>
     <div class="current-play-list">
         <div 
-            v-for="(item) in currentPlayList.list"
-            :class="`current-play-item ${currentMusic.id === item.id ? 'play-item' : ''}`"
+            v-for="(item) in playList"
             :key="item.id"
+            :class="`current-play-item ${currentMusic.id === item.id ? 'play-item' : ''}`"
             @dblclick="store.commit('currentMusic/changeState', item)"
         >
             <div class="song-name ellipsis">

@@ -25,24 +25,49 @@ import { useStore } from '@/store';
 import OutIn from '@/components/out-in.vue';
 import PlayBut from '@/components/playBut.vue';
 import Icon from '@/components/icon.vue';
-import currentPlayList from '@/components/playList/currentPlayList.vue';
+import PlayList from '@/components/playList/playList.vue';
 
 const main = ref();
 const sound = ref(100);
 const showLatelyList = ref(false);
 const showLyric = ref(false);
 const lyric = ref('网抑云音乐');
+const modle = ref('icon-danquxunhuan');
 const line = ref<HTMLDivElement>();
 const spot = ref<HTMLSpanElement>();
 const audio = ref<HTMLAudioElement>();
 const trunk = ref<HTMLDivElement>();
 const store = useStore();
 const currentMusic = store.state.currentMusic;
-const playList = store.state.currentPlayList;
+const playList = store.state.playList;
 
-// 歌曲总时间和当前时间
+let key = 0;
 let totalT = 0;
 let currentT = 0;
+let timeout: NodeJS.Timeout;
+let wait = false;
+let isMute = false;
+let ooldSound = sound.value;
+let playModle = [
+    'icon-danquxunhuan',
+    'icon-liebiaoxunhuan',
+    'icon-suijibofang'
+];
+
+const playStrategy = {
+    0() { // 单曲循环
+        let timer = setTimeout(() => {
+            playSong();
+            clearTimeout(timer);
+        });
+    },
+    1() { // 列表循环
+        console.log('列表循环');
+    },
+    2() { // 随机播放
+        console.log('随机播放');
+    },
+};
 
 /**
  * 选择音质
@@ -50,6 +75,29 @@ let currentT = 0;
  */
 const selectQuality = (key: number) => {
     console.log(key);
+};
+
+/**
+ * 切换播放模式
+ */
+const switchPlayModle = () => {
+    ++key > playModle.length-1 ? key = 0 : null;
+    let mode = playModle[key];
+    modle.value = mode;
+};
+
+/**
+ * 静音
+ */
+const mute = () => {
+    isMute = !isMute;
+    if (isMute) {
+        ooldSound = sound.value;
+        sound.value = 0;
+    } else {
+        sound.value = ooldSound;
+    }
+    changeSound(sound.value);
 };
 
 /**
@@ -121,9 +169,6 @@ const gradually = (play: boolean) => {
     });
 };
 
-let timeout: NodeJS.Timeout;
-let wait = false;
-
 /**
  * 开始或暂停播放
  * @param val true播放 false暂停
@@ -184,7 +229,6 @@ const changeSound = (value: number) => {
 const clickOuterClose = (e: Event) => {
     const el = e.target as HTMLElement;
     const lists = document.querySelectorAll('.showLatelyList');
-    if (showLatelyList.value) return;
     for (let i = 0; i < lists.length; i++) if (lists[i].contains(el)) return;
     showLatelyList.value = false;
     document.removeEventListener('click', clickOuterClose);
@@ -200,11 +244,11 @@ const switchshowLatelyList = () => {
 
 /* 清空当前播放列表 */
 const clearList = () => {
-    console.log(playList, currentMusic);
-    
     store.commit('currentMusic/clearState');
-    store.commit('currentPlayList/clearList');
+    store.commit('playList/clearList');
+    setProgress(0);
 };
+
 
 onMounted(() => {
     if (!audio.value || !spot.value || !trunk.value) return;
@@ -231,12 +275,13 @@ onMounted(() => {
             id: currentMusic.id,
             totalTime: currentMusic.totalTime,
         }, currentMusic);
-        store.commit('currentPlayList/updateState', currentPlayItem);
+        store.commit('playList/updateState', currentPlayItem);
     };
     /* 结束播放 */
     let ended = () => {
         clearInterval(time);
         store.commit('currentMusic/playSong', false);
+        playStrategy[key]();
     };
     /* 按下空格进行播放或停止 */
     let keydown = (e: KeyboardEvent) => {
@@ -321,7 +366,7 @@ watch(() => currentMusic.url, watchUrl);
 </script>
 
 <template>
-    <div :class="`song-detail-container ${!currentMusic.url ? 'opacity0' : ''}`">
+    <div :class="`song-detail-container ${!currentMusic.url ? 'invalid' : ''}`">
         <div class="song-detail">
             <img :src="currentMusic.pic" width="60" height="60" alt="">
             <div class="song-info">
@@ -337,9 +382,9 @@ watch(() => currentMusic.url, watchUrl);
         </div>
     </div>
     <div :class="`song-control ${!currentMusic.url ? 'unable-play' : ''}`">
-        <div class="song-control-item">
-            <div class="play-mode">
-                <Icon class="control-but" type="icon-liebiaoxunhuan"></Icon>
+        <div class="song-control-item  showLatelyList">
+            <div class="play-mode base-pointer">
+                <Icon class="control-but" :type="modle" size="16" @click="switchPlayModle"></Icon>
             </div>
             <step-backward-outlined class="base-size20px control-but" />
             <div class="play">
@@ -360,7 +405,7 @@ watch(() => currentMusic.url, watchUrl);
             <span class="progress-time">{{ currentMusic.totalTime }}</span>
         </div>
     </div>
-    <div :class="`user-options ${!currentMusic.url ? 'opacity0' : ''}`">
+    <div :class="`user-options ${!currentMusic.url ? 'invalid' : ''}`">
         <a-dropdown>
             <template #overlay>
                 <a-menu class="quality-list" @click="selectQuality">
@@ -385,7 +430,7 @@ watch(() => currentMusic.url, watchUrl);
                         class="sound-slider" 
                     />
                 </template>
-                <sound-outlined class="control-but"/>
+                <sound-outlined class="control-but" @click="mute"/>
             </a-popover>
         </div>
         <menu-unfold-outlined class="control-but" @click.stop="switchshowLatelyList"/>
@@ -411,19 +456,22 @@ watch(() => currentMusic.url, watchUrl);
                 </div>
             </div>
         </template>
-        <current-play-list></current-play-list>
+        <PlayList></PlayList>
     </a-drawer>
     <audio 
         ref="audio" 
         preload="auto"
         :src="currentMusic.url" 
+        controls
+        autoplay
         style="display: none"
     ></audio>
 </template>
 
 <style lang='less'>
-.opacity0 {
+.invalid {
     opacity: 0;
+    pointer-events: none;
 }
 
 .unable-play {
@@ -604,6 +652,10 @@ watch(() => currentMusic.url, watchUrl);
     padding: 0px 10px;
     min-width: 180px;
     height: 30px;
+}
+
+.play-mode {
+    height: 16px;
 }
 
 .quality {

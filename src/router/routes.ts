@@ -1,18 +1,52 @@
 import { RouteRecordRaw } from 'vue-router';
-import discoverMusic from '@/views/discoveMusic/discoveMusic.vue';
+import DiscoveMusic from '@/views/discoveMusic/discoveMusic.vue';
+import Recommend from '@/views/discoveMusic/recommend/recommend.vue';
 
 const routes: RouteRecordRaw[] = [
     {
         path: '/',
-        redirect: '/discoverMusic',
+        redirect: '/discoveMusic',
     },
     {
-        path: '/discoverMusic',
-        component: discoverMusic,
+        path: '/discoveMusic',
+        component: DiscoveMusic,
+        redirect: '/discoveMusic/recommend',
         meta: {
             key: '1',
             name: '发现音乐',
         },
+        children: [
+            {
+                path: 'recommend',
+                name: '个性推荐',
+                component: Recommend,
+            },
+            {
+                path: 'handtailor',
+                name: '专属定制',
+                component: () => import('@/views/discoveMusic/handtailor/handtailor.vue'),
+            },
+            {
+                path: 'songSheet',
+                name: '歌单',
+                component: () => import('@/views/discoveMusic/songSheet/songSheet.vue'),
+            },
+            {
+                path: 'rankingList',
+                name: '排行榜',
+                component: () => import('@/views/discoveMusic/rankingList/rankingList.vue'),
+            },
+            {
+                path: 'singer',
+                name: '歌手',
+                component: () => import('@/views/discoveMusic/singer/singer.vue'),
+            },
+            {
+                path: 'latestMusic',
+                name: '最新音乐',
+                component: () => import('@/views/discoveMusic/latestMusic/latestMusic.vue'),
+            }
+        ],
     },
     {
         path: '/podcast',

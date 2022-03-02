@@ -69,7 +69,7 @@ watch( // 观察当前路由的meat有没有name，没有则不会选中导航�
                 <router-view></router-view>
             </a-layout-content>
         </a-layout>
-        <a-layout-footer>
+        <a-layout-footer class="showLatelyList">
             <player></player>
         </a-layout-footer>
     </a-layout>
@@ -150,8 +150,20 @@ body {
     font-size: 16px;
 }
 
+.base-size18px {
+    font-size: 18px;
+}
+
 .base-size20px {
     font-size: 20px;
+}
+
+.base-size22px {
+    font-size: 22px;
+}
+
+.base-absolute {
+    position: absolute;
 }
 
 .base-pointer {
@@ -163,7 +175,7 @@ body {
 }
 
 .ant-layout-content {
-    padding: 15px 30px;
+    padding: 0px 30px;
     background-color: #ffffff;
 }
 
@@ -178,6 +190,12 @@ body {
 .ellipsis {
     white-space: nowrap;
     text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.ellipsis-multiline {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
     overflow: hidden;
 }
 
