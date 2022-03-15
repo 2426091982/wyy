@@ -16,7 +16,7 @@ defineProps({
                 <div class="private-play-but base-absolute">
                     <caret-right-outlined />
                 </div>
-                <img :src="entry ? item.sPicUrl : item.picUrl" >
+                <img :src="entry ? item.sPicUrl : item.picUrl + '?param=350y200'" >
             </div>
             <div class="private-content-details">
                 <span> {{ item.name }} </span>

@@ -8,6 +8,7 @@ import { JsonData, UserInfo } from '@/store/types/user';
 import { message } from "ant-design-vue";
 import { InferComment } from './types';
 import md5 from "md5";
+import { isString } from '@vue/shared';
 
 export const isObject = <T>(value: T) => typeof value === 'object' && value !== null; 
 
@@ -16,6 +17,8 @@ export const isArray = Array.isArray;
 export const isUndef = <T>(value: T) => value == undefined;
 
 export const toMD5 = (password: string) => md5(password);
+
+export const stop = (e: Event) => e.preventDefault();
 
 // 生成时间戳
 export const now = () => Date.now();
@@ -117,6 +120,22 @@ export const deconstruction = <T>(chars: (InferComment<T>)[], data: T) => {
 };
 
 /**
+ * 格式化播放量
+ * @param count 播放量
+ * @returns 1000 -> 1万 100000000 -> 1亿
+ */
+export const parsePlayCount = (count: string) => {
+    const len = count.length;
+    if (len >= 5 && len < 9) {
+        return count.slice(0, -4) + '万';
+    } else if (len >= 9) {
+        return count.slice(0, -8) + '亿';
+    } else {
+        return count;
+    }
+};
+
+/**
  * 解析时间
  * @param time 时间
  * @param second 是否显示秒钟
@@ -154,7 +173,7 @@ export const handleTime = (time: number) => {
     const hours = Math.floor(time / 60 / 60);
     let minute = Math.floor(time / 60);
     minute = minute >= 60 ? Math.floor(minute / 60) : minute;
-    const scound = time - (hours * 60 * 60 + minute * 60);
+    const scound = Math.floor(time - (hours * 60 * 60 + minute * 60));
     return `${
         hours > 9
             ? hours + ':'
@@ -204,7 +223,6 @@ export const throttle = <T extends Function>(
             reslute = fn.call(this, e, ...args);
             prev = now();
         } else if (!time) {
-            
             time = setTimeout(() => {
                 clearTimeout(time);
                 reslute = fn.call(this, e, ...args);

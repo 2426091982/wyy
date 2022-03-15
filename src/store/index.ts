@@ -8,7 +8,7 @@ import { InjectionKey } from 'vue';
 import user from './modules/user';
 import currentMusic from './modules/currentMusic';
 import playList from './modules/playList';
-import recommendSongSheet from './modules/recommendSongSheet';
+import songSheet from './modules/songSheet';
 import privateContent from './modules/privateContent';
 import newSong from './modules/newSong';
 import recommendSongs from './modules/recommendSongs';
@@ -31,7 +31,7 @@ export const store = createStore({
         user,
         currentMusic,
         playList,
-        recommendSongSheet,
+        songSheet,
         privateContent,
         newSong,
         recommendSongs,

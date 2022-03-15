@@ -4,7 +4,7 @@ import { PlayList, PlayListState } from './playList';
 import { NewSong } from './newSong';
 import { PrivateContent } from './privateContent';
 import { RecommendSongs } from './recommendSongs';
-import { RecommendSongSheet } from './recommendSongSheet';
+import { SongSheet } from './songSheet';
 import {
     User,
     UserState
@@ -25,7 +25,7 @@ type Options = {
         user: User;
         currentMusic: CurrentMusic;
         playList: PlayList;
-        recommendSongSheet: RecommendSongSheet;
+        songSheet: SongSheet;
         privateContent: PrivateContent;
         newSong: NewSong;
         recommendSongs: RecommendSongs;
@@ -39,7 +39,7 @@ type State = {
     user: UserState;
     currentMusic: CurrentMusicState;
     playList: PlayListState;
-    recommendSongSheet: RecommendSongSheet['state'];
+    songSheet: SongSheet['state'];
     privateContent: PrivateContent['state'];
     newSong: NewSong['state'];
     recommendSongs: RecommendSongs['state'];

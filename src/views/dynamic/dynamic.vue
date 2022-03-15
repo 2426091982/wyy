@@ -27,6 +27,7 @@ import {
     parseEventData 
 } from '@/utils/parseData';
 import { 
+    getItem,
     isLogin,
     parseArtists,
     parseDate 
@@ -38,6 +39,8 @@ import { CurrentMusicState } from '@/store/types/currentMusic';
 import Loading from '@/components/loading.vue';
 import Comment from '@/components/comment/comment.vue';
 import PlayBut from '@/components/playBut.vue';
+import { changePlayList } from '@/utils/song';
+import { RecommendSongsData } from '@/store/types/recommendSongs';
 
 type TData = { 
     events: DyismaData['events'] | null,
@@ -87,6 +90,7 @@ const route = useRoute();
 const { name, id, } = route.query;
 const currentMusic = store.state.currentMusic;
 const playList = store.state.playList;
+const tracks = getItem('play-list') || [] as  RecommendSongsData[];
 
 // 解析分享类型
 const parseType = (type: number) => {
@@ -162,6 +166,7 @@ const play = async (events: UserEvents[] | null, key: number) => {
             item.play = false;
         }
     });
+    changePlayList(tracks, tracks.length);
 };
 
 // 点赞或取消点赞

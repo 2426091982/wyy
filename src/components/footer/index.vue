@@ -9,8 +9,11 @@ import {
     MenuUnfoldOutlined
 } from '@ant-design/icons-vue';
 import { 
+    getItem,
     handleTime, 
     now, 
+    setItem, 
+    stop, 
     throttle 
 } from '@/utils';
 import { 
@@ -22,6 +25,7 @@ import {
 import { getLyric } from '@/api';
 import { Lyic } from '@/types/lyric';
 import { useStore } from '@/store';
+import { playListSong } from '@/utils/song';
 import OutIn from '@/components/out-in.vue';
 import PlayBut from '@/components/playBut.vue';
 import Icon from '@/components/icon.vue';
@@ -32,7 +36,6 @@ const sound = ref(100);
 const showLatelyList = ref(false);
 const showLyric = ref(false);
 const lyric = ref('网抑云音乐');
-const modle = ref('icon-danquxunhuan');
 const line = ref<HTMLDivElement>();
 const spot = ref<HTMLSpanElement>();
 const audio = ref<HTMLAudioElement>();
@@ -41,19 +44,22 @@ const store = useStore();
 const currentMusic = store.state.currentMusic;
 const playList = store.state.playList;
 
-let key = 0;
+let prevI = 0;
 let totalT = 0;
 let currentT = 0;
-let timeout: NodeJS.Timeout;
 let wait = false;
 let isMute = false;
+let timeout: NodeJS.Timeout;
 let ooldSound = sound.value;
+let key = getItem('play-modle') || 0;
 let playModle = [
     'icon-danquxunhuan',
     'icon-liebiaoxunhuan',
     'icon-suijibofang'
 ];
+let modle = ref(playModle[key]);
 
+// 播放模式
 const playStrategy = {
     0() { // 单曲循环
         let timer = setTimeout(() => {
@@ -61,11 +67,35 @@ const playStrategy = {
             clearTimeout(timer);
         });
     },
-    1() { // 列表循环
-        console.log('列表循环');
+    1(next: boolean) { // 列表循环
+        let { 
+            playList: list, 
+            index, 
+        } = playList;
+        if (next) {
+            index < list.length - 1 ? ++index : index = 0;
+        } else {
+            index > 0 ? --index : index = list.length - 1;
+        }
+        const songInfo = list[index];
+        playListSong(songInfo, index);
     },
     2() { // 随机播放
-        console.log('随机播放');
+        let {
+            playList: list,
+            index,
+            total,
+        } = playList;
+        const randomI: () => number = () =>  {
+            const i = Math.floor(Math.random() * list.length);
+            if (i < 0 || i > total || i === prevI) {
+                return randomI();
+            }
+            return i;
+        };
+        index = randomI();
+        prevI = index;
+        playListSong(list[index], index);
     },
 };
 
@@ -83,6 +113,7 @@ const selectQuality = (key: number) => {
 const switchPlayModle = () => {
     ++key > playModle.length-1 ? key = 0 : null;
     let mode = playModle[key];
+    setItem('play-modle', key);
     modle.value = mode;
 };
 
@@ -212,7 +243,6 @@ const watchUrl = async (newUrl: string) => {
             lrc,
         } = await getLyric(currentMusic.id) as Lyic;
         if (code === 200) {
-            console.log(lrc.lyric);
             lyric.value = lrc.lyric;
         } else {
             lyric.value = '获取歌词失败！';
@@ -249,6 +279,21 @@ const clearList = () => {
     setProgress(0);
 };
 
+const prevSong = () => {
+    if (key === 0) {
+        playStrategy[1](false);
+    } else{
+        playStrategy[key](false);
+    }
+};
+
+const nextSong = () => {
+    if (key === 0) {
+        playStrategy[1](true);
+    } else{
+        playStrategy[key](true);
+    }
+};
 
 onMounted(() => {
     if (!audio.value || !spot.value || !trunk.value) return;
@@ -281,17 +326,26 @@ onMounted(() => {
     let ended = () => {
         clearInterval(time);
         store.commit('currentMusic/playSong', false);
-        playStrategy[key]();
+        nextSong();
     };
     /* 按下空格进行播放或停止 */
     let keydown = (e: KeyboardEvent) => {
-        if (e.code === 'Space') playSong();
+        switch (e.code) {
+        case 'Space':
+            playSong();
+            break;
+        case 'ArrowLeft':
+            prevSong();
+            break;
+        case 'ArrowRight':
+            nextSong();
+        }
     };
     /**
      * 按下歌曲进度条小圆点定位记录起始位置
      */
     let mouseDown = (e: MouseEvent) => {
-        e.stopPropagation();
+        stop(e);
         clearInterval(time);
         startX = e.pageX;
         el = e.target as HTMLSpanElement;
@@ -386,11 +440,11 @@ watch(() => currentMusic.url, watchUrl);
             <div class="play-mode base-pointer">
                 <Icon class="control-but" :type="modle" size="16" @click="switchPlayModle"></Icon>
             </div>
-            <step-backward-outlined class="base-size20px control-but" />
+            <step-backward-outlined class="base-size20px control-but" @click="prevSong" />
             <div class="play">
                 <PlayBut :play="currentMusic.play" @click="playSong"></PlayBut>
             </div>
-            <step-forward-outlined class="base-size20px control-but" /> 
+            <step-forward-outlined class="base-size20px control-but" @click="nextSong" /> 
             <div :class="showLyric ? 'show-lyric' : ''">
                 <span class="control-but base-pointer" @click="showLyric = !showLyric">词</span>
             </div>
@@ -408,7 +462,7 @@ watch(() => currentMusic.url, watchUrl);
     <div :class="`user-options ${!currentMusic.url ? 'invalid' : ''}`">
         <a-dropdown>
             <template #overlay>
-                <a-menu class="quality-list" @click="selectQuality">
+                <a-menu class="quality-list" @click="selectQuality(key)">
                     <a-menu-item class="quality-item" key="1">标准音质</a-menu-item>
                     <a-menu-item class="quality-item" key="2">较高音质</a-menu-item>
                     <a-menu-item class="quality-item" key="3">极高音质</a-menu-item>
@@ -426,7 +480,7 @@ watch(() => currentMusic.url, watchUrl);
                         v-model:value="sound" 
                         vertical 
                         :tip-formatter="null"
-                        @change="changeSound" 
+                        @change="changeSound(sound)" 
                         class="sound-slider" 
                     />
                 </template>
@@ -456,7 +510,9 @@ watch(() => currentMusic.url, watchUrl);
                 </div>
             </div>
         </template>
-        <PlayList></PlayList>
+        <div class="scroll-body scroll-none">
+            <PlayList></PlayList>
+        </div>
     </a-drawer>
     <audio 
         ref="audio" 
@@ -469,6 +525,11 @@ watch(() => currentMusic.url, watchUrl);
 </template>
 
 <style lang='less'>
+.scroll-body {
+    height: 100%;
+    overflow-y: scroll;
+}
+
 .invalid {
     opacity: 0;
     pointer-events: none;

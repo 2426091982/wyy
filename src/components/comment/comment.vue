@@ -14,7 +14,7 @@ import {
 } from "@/api";
 import { ref } from "@vue/reactivity";
 import { PropType } from "@vue/runtime-core";
-import { parseDate } from '@/utils';
+import { parseDate, stop } from '@/utils';
 import { message } from 'ant-design-vue';
 
 const { sourceData, } = defineProps({
@@ -94,10 +94,7 @@ const textareaChange = (e: Event) => {
     }
 };
 // 清除冒泡
-const stopPropagation = (e: KeyboardEvent) => {
-    if (e.code === 'Space') {
-        e.stopPropagation();
-    } 
+const stopPropagation = (e: KeyboardEvent) => if (e.code === 'Space') stop(e); 
 };
 </script>
 

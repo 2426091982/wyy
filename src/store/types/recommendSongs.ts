@@ -22,4 +22,5 @@ export interface RecommendSongsData {
     ar: Artists[];
     br: number;
     id: string | number;
+    dt: number;
 }

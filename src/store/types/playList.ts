@@ -1,5 +1,6 @@
 import { CurrentMusicState } from "./currentMusic";
 import { RecommendSongsData } from "./recommendSongs";
+import { SongSheetData } from "./songSheet";
 /* 
     后期可以添加歌曲播放的来源 
 */
@@ -8,18 +9,19 @@ export interface PlayListInfo extends CurrentMusicState {
     totalTime: string;
 }
 
-export interface SongSheetItem {
-    songs: RecommendSongsData[];
-    total: number;
-    creatTime: number;
-}
-
 export interface PlayListState {
+    playListId: number;
+    index: number;
     lately: PlayListInfo[];
-    songSheets: {
+    cacheSongSheets: {
         id: number; 
-        songs: SongSheetItem[];
+        info: SongSheetData
     }[];
+    currentList: {
+        id: number; 
+        songs: PlayListInfo[]
+    },
+    playList: PlayListInfo[], // 右侧播放列表
     total: number;
 }
 
@@ -29,7 +31,11 @@ export interface PlayList {
     mutations: {
         clearList: (state: PlayListState) => void;
         updateState: (state: PlayListState, list: PlayListInfo) => void;
-        addSongSheet: (state: PlayListState, id: number, songSheet: SongSheetItem[]) => void;
-        updateSongSheet: (state: PlayListState, id: number, newData: SongSheetItem[]) => void;
+        addCacheSongSheets: (state: PlayListState, playList: { id: number, info: SongSheetData}, ) => void;
+        changePlayList: (state: PlayListState, playList: { songs: PlayListInfo[], size: number, id: number }) => void;
+        addPlayList: (state: PlayListState, songs: PlayListInfo[]) => void;
+        changeIndex: (state: PlayListState, index: number) => void;
+        createCurrentList: (state: PlayListState, data: PlayListState['currentList']) => void;
+        updateCurrentList: (state: PlayListState, data: PlayListInfo[]) => void;
     };
 }

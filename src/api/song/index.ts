@@ -19,4 +19,4 @@ export const getLyric = (id: number) => {
 export const getRecommendSongs = () => http.get('/recommend/songs');
 
 /* 获取歌单歌曲 */
-export const getPlayListAll = (id: number, limit = 20, offset = 1) => http.get('/playlist/track/all', { id, limit, offset, });
+export const getPlayListAll = (id: number, limit = 20, offset = 0) => http.get('/playlist/track/all', { id, limit, offset, });

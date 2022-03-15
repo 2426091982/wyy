@@ -1,4 +1,5 @@
 import { PlayList, PlayListInfo } from "../types/playList";
+import { SongSheetData } from "../types/songSheet";
 
 const key = 'play-list';
 const lately = JSON.parse(localStorage.getItem(key) || '[]') as PlayListInfo[];
@@ -6,7 +7,14 @@ const playList: PlayList = {
     namespaced: true,
     state: {
         lately,
-        songSheets: [],
+        playListId: -1,
+        cacheSongSheets: [],
+        playList: lately,
+        currentList: {
+            id: -1,
+            songs: [],
+        },
+        index: -1,
         total: lately.length,
     },
     mutations: {
@@ -23,20 +31,22 @@ const playList: PlayList = {
             }
             if (!flag) {
                 list.unshift(data);
-                ++state.total;
+                if (state.playListId === -1) {
+                    ++state.total;
+                }
             }
             localStorage.setItem(key, JSON.stringify(list));
         },
         clearList(state) {
-            state.lately = [];
+            state.playList = [];
             state.total = 0;
             localStorage.removeItem(key);
         },
-        addSongSheet(state, id, songSheet) {
-            const songSheets = state.songSheets;
+        addCacheSongSheets(state, { id,  info, }) {
+            const songSheets = state.cacheSongSheets;
             const data = {
                 id,
-                songs: songSheet,
+                info,
             };
             if (songSheets.length < 5) {
                 songSheets.push(data);
@@ -45,15 +55,27 @@ const playList: PlayList = {
                 songSheets.push(data);
             }
         },
-        updateSongSheet(state, id, newData) {
-            const songSheets = state.songSheets;
-            for (let i = 0; i < songSheets.length; i++) {
-                const songSheet = songSheets[i];
-                if (songSheet.id !== id) return;
-                songSheet.songs.push(...newData);
-            }
+        changePlayList(state, playList) {
+            state.playList = playList.songs;
+            state.playListId = playList.id;
+            state.total = playList.size;
+        },
+        addPlayList(state, songs) {
+            state.playList.push(...songs);
+        },
+        changeIndex(state, index) {
+            state.index = index;
+        },
+        createCurrentList(state, data) {
+            state.currentList = data;
+        },
+        updateCurrentList(state, data) {
+            state.currentList.songs.push(...data);
         },
     },
 };
-/* 最近播放数据 */
+/* 
+ * 最近播放数据
+ * 管理最近播放过的歌单 歌单列表
+ */
 export default playList;

@@ -65,7 +65,7 @@ watch( // 观察当前路由的meat有没有name，没有则不会选中导航�
                     </a-menu-item-group>
                 </a-menu>
             </a-layout-sider>
-            <a-layout-content class="main">
+            <a-layout-content class="main scroll-style">
                 <router-view></router-view>
             </a-layout-content>
         </a-layout>
@@ -84,45 +84,50 @@ body {
     overflow: hidden;
 }
 
-::-webkit-scrollbar {
+.scroll-style::-webkit-scrollbar {
     width: 6px;
     height: 6px;
 }
 
-::-webkit-scrollbar-track {
+.scroll-style::-webkit-scrollbar-track {
     border-radius: 2px;
     background: #fff;
     box-shadow: none;
 }
 
-:hover::-webkit-scrollbar-track {
+.scroll-style:hover::-webkit-scrollbar-track {
     box-shadow: inset 0px 0px rgba(0, 0, 0, 0);
 }
 
-::-webkit-scrollbar-thumb {
+.scroll-style::-webkit-scrollbar-thumb {
     background: transparent;
     border-radius: 10px;
 }
 
-:hover::-webkit-scrollbar-thumb {
+.scroll-style:hover::-webkit-scrollbar-thumb {
     background: #666666;
     box-shadow: 0px 0px 10px #666;
 }
 
-::-webkit-scrollbar-thumb:hover {
+.scroll-style::-webkit-scrollbar-thumb:hover {
     background: #999999;
 }
 
-::-webkit-scrollbar-corner {
+.scroll-style::-webkit-scrollbar-corner {
     background: #204754;
 }
 
-:hover:-webkit-scrollbar-corner {
+.scroll-style:hover:-webkit-scrollbar-corner {
     background: transparent;
 }
 
-::selection {
+.scroll-style::selection {
     background-color: #1890ff;
+}
+
+.scroll-none::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
 }
 
 #app {
@@ -201,7 +206,7 @@ body {
 
 .ant-layout-footer {
     display: flex;
-    padding: 10px 20px;
+    padding: 10px 30px;
     min-width: 665px;
     height: 80px;
     justify-content: space-between;

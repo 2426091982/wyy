@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NewSongData } from "@/store/types/newSong";
 import { RecommendSongsData } from "@/store/types/recommendSongs";
-import { SongSheetData } from "@/store/types/recommendSongSheet";
+import { SongSheetData } from "@/store/types/songSheet";
 import { 
     CommentInfo,
     DyismaData, 
@@ -147,6 +147,7 @@ export const parseSongSheetData = (songSheet: SongSheetData[]) => {
         'id',
         'name',
         'picUrl',
+        'coverImgUrl',
         'playcount',
         'trackCount'
     ], songSheet);
@@ -201,8 +202,30 @@ export const parseRecommendSongs = (songs: RecommendSongsData[]) => {
         'al',
         'ar',
         'id',
-        'name'
+        'name',
+        'dt'
     ], songs);
-
     return data;
+};
+
+/* 解析歌单信息 */
+export const parseSongSheetInfo = (songSheet: SongSheetData) => {
+    return deconstruction([
+        'copywriter',
+        'createTime',
+        'creator',
+        'description',
+        'id',
+        'name',
+        'coverImgUrl',
+        'playCount',
+        'shareCount',
+        'subscribed',
+        'subscribedCount',
+        'picUrl',
+        'tags',
+        'trackCount',
+        'tracks',
+        'userId'
+    ], songSheet);
 };

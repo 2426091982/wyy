@@ -17,10 +17,9 @@ defineProps({
 
 let styleData = ref([
     { width:'540px', height: '200px', top: '0px', left: '25%', 'z-index': 10, },
-    { width:'435px', height: '160px', top: '20px', left: '60.4%', 'z-index': 8, },
+    { width:'435px', height: '160px', top: '20px', left: '60%', 'z-index': 8, },
     { width:'410px', height: '150px', top: '20px', left: '50%', 'z-index': 6, },
     { width:'390px', height: '145px', top: '30px', left: '40%', 'z-index': 4, },
-    { width:'380px', height: '140px', top: '30px', left: '32%', 'z-index': 2, },
     { width:'380px', height: '140px', top: '30px', left: '26%', 'z-index': 2, },
     { width:'390px', height: '145px', top: '30px', left: '18%', 'z-index': 4, },
     { width:'410px', height: '150px', top: '20px', left: '10%', 'z-index': 6, },
@@ -123,7 +122,7 @@ onDeactivated(() => {
                     @click="jumpPlay(key)"
                 >
                     <div style="position: relative">
-                        <img :src="item.imageUrl" alt="">
+                        <img :src="item.imageUrl + '?param=540y200'" alt="">
                         <span class="typeTitle" :style="{backgroundColor: item.titleColor}"> {{ item.typeTitle }} </span>
                     </div>
                 </div>
@@ -229,5 +228,11 @@ onDeactivated(() => {
 
 .carousel-spot-active {
     background-color: #1890ff;
+}
+</style>
+
+<style lang="less">
+@media screen and (max-width: 1360px) {
+    
 }
 </style>

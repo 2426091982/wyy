@@ -98,6 +98,24 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/followeds',
         component: () => import('@/views/followeds/followeds.vue'),
+    },
+    {
+        path: '/songSheet/:id',
+        component: () => import('@/views/songSheet/songSheet.vue'),
+        children: [
+            {
+                path: '',
+                component: () => import('@/components/playList/playList.vue'),
+            },
+            {
+                path: 'comment',
+                component: () => import('@/components/comment.vue'),
+            },
+            {
+                path: 'collection',
+                component: () => import('@/components/collection.vue'),
+            }
+        ],
     }
 ];
 

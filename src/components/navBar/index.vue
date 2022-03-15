@@ -33,14 +33,14 @@ defineProps({
     padding: 8px 5px;
 }
 
-.anv-bar-text.router-link-active {
+.anv-bar-text.router-link-exact-active {
     position: relative;
     font-size: 18px;
     font-weight: 700;
     color: #1890ff;
 }
 
-.anv-bar-text.router-link-active::after {
+.anv-bar-text.router-link-exact-active::after {
     content: '';
     position: absolute;
     left: 10%;

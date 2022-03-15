@@ -10,6 +10,12 @@ const parseId = (query: any) => {
     return query;
 };
 
+/**
+ * 获取用户详情
+ * @param uid 用户ID
+ */
+export const getUserDetail = (uid: number) => http.get('/user/detail', { uid, });
+
 // 获取用户动态
 export const getDynamic: Require = (uid) => http.get('/user/event', { uid, });
 

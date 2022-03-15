@@ -1,7 +1,8 @@
 <script lang="ts" setup>
+import { NavBar as navBar } from '@/types/base';
 import NavBar from '@/components/navBar/index.vue';
 import routers from '@/router/routes';
-import { NavBar as navBar } from '@/types/base';
+import OutIn from '@/components/out-in.vue';
 
 let list = [] as navBar;
 routers.forEach((router) => {
@@ -22,9 +23,11 @@ routers.forEach((router) => {
     <NavBar :list="list"></NavBar>
     <div class="main-base">
         <router-view v-slot="{ Component }">
-            <keep-alive>
-                <component :is="Component"/>
-            </keep-alive>
+            <out-in>
+                <keep-alive>
+                    <component :is="Component"/>
+                </keep-alive>
+            </out-in>
         </router-view>
     </div>
 </template>
@@ -32,7 +35,6 @@ routers.forEach((router) => {
 <style lang="less">
 .main-base {
     margin: 0 auto;
-    max-width: 1100px;
-    min-width: 760px;
+    width: 1100px;
 }
 </style>
