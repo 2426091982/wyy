@@ -7,7 +7,7 @@ const privateContent: PrivateContent = {
     },
     mutations: {
         push(state, value) {
-            state.list.push(...value);
+            state.list = value;
         },
     },
 };

@@ -51,10 +51,6 @@ const list = [
         path: `/songSheet/${id}`,
     }, 
     {
-        name: '评论',
-        path: `/songSheet/${id}/comment`,
-    }, 
-    {
         name: '收藏者',
         path: `/songSheet/${id}/collection`,
     }
@@ -122,97 +118,101 @@ onMounted(async () => {
             tracks: songsData.songs,
         } as SongSheetData;
     }
-    console.log(songSheetInfo.value);
     
-    tracks.value = toPlayList(songSheetInfo.value!.tracks);
-    // 将歌单数据存储到Vuex
-    store.commit('playList/createCurrentList', { id, songs: tracks.value, });
+    const currentList = store.state.playList.currentList;
+    if(currentList.id === id && currentList.songs.length > 20) {
+        tracks.value = currentList.songs;
+    } else {
+        tracks.value = toPlayList(songSheetInfo.value!.tracks);
+    }
     loading.value = false;
 });
 </script>
 
 <template>
-    <Loading :loading="loading">
-        <div v-if="songSheetInfo">
-            <div class="song-sheet-info">
-                <img 
-                    v-if="id !== -11"
-                    :src="songSheetInfo.coverImgUrl + '?param=184y184'" 
-                    width="184" 
-                    height="184" 
-                    alt="图片背景"
-                >
-                <div class="calendar-container" v-else>
-                    <div class="calendar base-absolute">
-                        <span class="calendar base-absolute calendar-day"> {{ nowDay }} </span>
-                        <calendar-outlined class="calendar base-absolute" />
+    <div>
+        <Loading :loading="loading">
+            <div v-if="songSheetInfo">
+                <div class="song-sheet-info">
+                    <img 
+                        v-if="id !== -11"
+                        :src="songSheetInfo.coverImgUrl + '?param=184y184'" 
+                        width="184" 
+                        height="184" 
+                        alt="图片背景"
+                    >
+                    <div class="calendar-container" v-else>
+                        <div class="calendar base-absolute">
+                            <span class="calendar base-absolute calendar-day"> {{ nowDay }} </span>
+                            <calendar-outlined class="calendar base-absolute" />
+                        </div>
+                    </div>
+                    <div>
+                        <div class="song-sheet-info-title">
+                            <a-tag color="blue">歌单</a-tag>
+                            <h2>{{ songSheetInfo.name }}</h2>
+                        </div>
+                        <div class="song-sheet-info-author">
+                            <a-avatar v-if="songSheetInfo?.creator" size="small">
+                                <template #icon>
+                                    <img :src="songSheetInfo.creator.avatarUrl" alt="">
+                                </template>
+                            </a-avatar>
+                            <a-avatar v-else size="small">
+                                <template #icon><UserOutlined /></template>
+                            </a-avatar>
+                            <router-link to="/" class="nickname">{{ songSheetInfo?.creator.nickname }}</router-link>
+                            <span class="create-time"> {{ createTime(songSheetInfo.createTime) }} </span>
+                        </div>
+                        <div class="song-sheet-info-buts">
+                            <a-button type="primary" shape="round" @click="playCurrentList">
+                                <template #icon>
+                                    <caret-right-outlined class="base-size18px" />
+                                </template>
+                                开始播放
+                            </a-button>
+                            <a-button shape="round">
+                                <template #icon>
+                                    <folder-add-outlined class="base-size18px" />
+                                </template>
+                                收藏 {{ parsePlayCount(String(songSheetInfo.subscribedCount)) }}
+                            </a-button>
+                        </div>
+                        <div class="song-sheet-info-tags">
+                            标签：<span>{{ songSheetInfo['tags'].join('/') }}</span>
+                        </div>
+                        <div class="song-sheet-info-playCount">
+                            歌曲：<span> {{ songSheetInfo.trackCount }} </span>
+                            &nbsp;
+                            播放：<span> {{ parsePlayCount(String(songSheetInfo.playCount)) }} </span>
+                        </div>
+                        <a-tooltip>
+                            <template #title>点击显示(隐藏)文字</template>
+                            <p 
+                                :class="`song-sheet-info-detail base-pointer ${ ellipsis ? 'ellipsis' : '' }`"
+                                @click="ellipsis = !ellipsis"
+                            > 简介：{{ songSheetInfo.description }} </p>
+                        </a-tooltip>
                     </div>
                 </div>
-                <div>
-                    <div class="song-sheet-info-title">
-                        <a-tag color="blue">歌单</a-tag>
-                        <h2>{{ songSheetInfo.name }}</h2>
-                    </div>
-                    <div class="song-sheet-info-author">
-                        <a-avatar v-if="songSheetInfo?.creator" size="small">
-                            <template #icon>
-                                <img :src="songSheetInfo.creator.avatarUrl" alt="">
-                            </template>
-                        </a-avatar>
-                        <a-avatar v-else size="small">
-                            <template #icon><UserOutlined /></template>
-                        </a-avatar>
-                        <router-link to="/" class="nickname">{{ songSheetInfo?.creator.nickname }}</router-link>
-                        <span class="create-time"> {{ createTime(songSheetInfo.createTime) }} </span>
-                    </div>
-                    <div class="song-sheet-info-buts">
-                        <a-button type="primary" shape="round" @click="playCurrentList">
-                            <template #icon>
-                                <caret-right-outlined class="base-size18px" />
-                            </template>
-                            开始播放
-                        </a-button>
-                        <a-button shape="round">
-                            <template #icon>
-                                <folder-add-outlined class="base-size18px" />
-                            </template>
-                            收藏 {{ parsePlayCount(String(songSheetInfo.subscribedCount)) }}
-                        </a-button>
-                    </div>
-                    <div class="song-sheet-info-tags">
-                        标签：<span>{{ songSheetInfo['tags'].join('/') }}</span>
-                    </div>
-                    <div class="song-sheet-info-playCount">
-                        歌曲：<span> {{ songSheetInfo.trackCount }} </span>
-                        &nbsp;
-                        播放：<span> {{ parsePlayCount(String(songSheetInfo.playCount)) }} </span>
-                    </div>
-                    <a-tooltip>
-                        <template #title>点击显示(隐藏)文字</template>
-                        <p 
-                            :class="`song-sheet-info-detail base-pointer ${ ellipsis ? 'ellipsis' : '' }`"
-                            @click="ellipsis = !ellipsis"
-                        > 简介：{{ songSheetInfo.description }} </p>
-                    </a-tooltip>
-                </div>
+                <NavBar :list="list"></NavBar>
             </div>
-            <NavBar :list="list"></NavBar>
-        </div>
-    </Loading>
-    <router-view v-if="songSheetInfo && !loading" v-slot="{ Component }">
-        <out-in>
-            <keep-alive>
-                <component
-                    :is="Component"
-                    :bigList="true"
-                    :id="id"
-                    :tracks="tracks"
-                    :trackCount="songSheetInfo.trackCount"
-                    @changeTracks="changeTracks"
-                />
-            </keep-alive>
-        </out-in>
-    </router-view>
+        </Loading>
+        <router-view v-if="songSheetInfo && !loading" v-slot="{ Component }">
+            <out-in>
+                <keep-alive>
+                    <component
+                        :is="Component"
+                        :bigList="true"
+                        :id="id"
+                        :tracks="tracks"
+                        :trackCount="songSheetInfo.trackCount"
+                        @changeTracks="changeTracks"
+                    />
+                </keep-alive>
+            </out-in>
+        </router-view>
+    </div>
 </template>
 
 <style lang='less'>

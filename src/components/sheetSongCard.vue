@@ -1,0 +1,230 @@
+<script lang='ts' setup>
+import {
+    UserOutlined,
+    CalendarOutlined,
+    CaretRightOutlined,
+    PlayCircleOutlined
+} from '@ant-design/icons-vue';
+import { 
+    getItem,  
+    parsePlayCount, 
+    stop,
+    day
+} from '@/utils';
+import { 
+    playListDetail, 
+    playSong 
+} from '@/utils/sheetSong';
+import { 
+    changePlayList, 
+    getSongInfo 
+} from '@/utils/song';
+import { useStore } from '@/store';
+import { RecommendSongsData } from '@/store/types/recommendSongs';
+import { SongSheetData } from '@/store/types/songSheet';
+import { RecommendSongsStatic } from '@/types/song';
+import { onMounted, PropType } from '@vue/runtime-core';
+import { ref } from '@vue/runtime-dom';
+import { getRecommendSongs } from '@/api';
+import { parseRecommendSongs } from '@/utils/parseData';
+
+const { dayRecommend, } = defineProps({
+    dayRecommend: {
+        type: Boolean,
+        default: false,
+    },
+    list: Boolean,
+    songSheet: { // 歌单数据
+        type: Array as PropType<SongSheetData[]>,
+    },
+});
+
+type Type = 'song' | 'sheet';
+
+let prevSongId = -1;
+
+const store = useStore();
+const nowDay = day();
+const recommendSongs = getItem('recommend-songs') as RecommendSongsStatic;
+const rSong = ref<RecommendSongsData[]>(recommendSongs?.songs || []);
+
+// 获取列表的前20首歌
+const querySong = async (sid: number, type: Type, e: Event) => {
+    stop(e);
+    if (prevSongId === sid) {
+        store.commit('currentMusic/playSong', !store.state.currentMusic.play);
+        return;
+    }
+    const data = await getSongInfo(sid, type) as RecommendSongsData[];
+    await playSong(+data[0].id, 'song', data, false);
+    const playList = await playListDetail(sid);
+    prevSongId = sid;
+    changePlayList(playList.tracks, playList.trackCount, sid);
+};
+
+if (dayRecommend) {
+    onMounted(async () => {
+        // 获取每日推荐歌曲
+        if (!recommendSongs || recommendSongs.day != nowDay) {
+            let { 
+                dailySongs,
+            } = await getRecommendSongs() as{ dailySongs: RecommendSongsData[] };
+            dailySongs = parseRecommendSongs(dailySongs);
+            store.commit('recommendSongs/change', dailySongs);
+            rSong.value = dailySongs;
+        }
+        
+    });
+}
+</script>
+
+<template>
+    <div class="song-sheet" v-if="dayRecommend">
+        <router-link :to="`/songSheet/${-11}`" :key="-11">
+            <div class="song-sheet-bg base-pointer">
+                <div class="song-sheet-copywriter base-absolute">
+                    <span>根据您的音乐口味生成每日更新</span>
+                </div>
+                <div class="calendar base-absolute">
+                    <span class="calendar base-absolute calendar-day"> {{ nowDay }} </span>
+                    <calendar-outlined class="calendar base-absolute" />
+                </div>
+                <div class="play-song-but base-absolute showLatelyList" @click.prevent="playSong(+rSong[0].id, 'song')">
+                    <caret-right-outlined class="base-size22px" />
+                </div>
+            </div>
+        </router-link>
+        <div class="copywriter-details base-pointer ellipsis-multiline">
+            <span>每日歌曲推荐</span>
+        </div>
+    </div>
+    <router-link 
+        v-else
+        v-for="item in songSheet" 
+        :to="`/songSheet/${item.id}`" 
+        :key="item.id"
+        @click="playListDetail(item.id)"
+        class="song-sheet" 
+    >
+        <div class="song-sheet-bg base-pointer">
+            <div class="play-count base-absolute">
+                <play-circle-outlined />
+                <span style="margin-left: 2px"> {{ parsePlayCount(String(item.playcount || item.playCount)) }} </span>
+            </div>
+            <div class="song-sheet-nickname base-absolute">
+                <user-outlined />
+                <span>{{ item.creator.nickname }}</span>
+            </div>
+            <img :src="item.picUrl || item.coverImgUrl +'?param=200y200'" width="200" height="200">
+            <div class="play-song-but base-absolute showLatelyList" @click="querySong(item.id, 'sheet', $event)">
+                <caret-right-outlined class="base-size22px" />
+            </div>
+        </div>
+        <div class="copywriter-details base-pointer ellipsis-multiline">
+            {{ item.name }}
+        </div>
+    </router-link>
+</template>
+
+<style lang='less'>
+.song-sheet {
+    flex: 18.54% 0;
+    color: #333333;
+
+    &:hover {
+        color: #333333;
+    }
+}
+
+.song-sheet-bg {
+    position: relative;
+    height: 80%;
+    border-radius: 8px;
+    overflow: hidden;
+    user-select: none;
+
+    img {
+        width: 100%;
+        height: 100%;
+    }
+
+    &:hover .play-song-but {
+        opacity: 1;
+    }
+}
+
+.song-sheet:first-child .song-sheet-bg {
+    background: linear-gradient(160deg,#174a5c 0%,#1f609c 51%,#24718d 75%, #3289a8);
+    &:hover .song-sheet-copywriter {
+        transform: translateY(0);
+    }
+}
+
+.song-sheet-copywriter {
+    width: 100%;
+    top: 0px;
+    padding: 4px 0;
+    text-align: center;
+    font-size: 12px;
+    color: #ffffff;
+    background-color: rgba(0, 0, 0, 0.2);
+    transform: translateY(-100%);
+    transition: transform 0.2s 500ms;
+}
+
+.calendar {
+    top: 50%;
+    left: 50%;
+    color: #ffffff;
+    font-size: 80px;
+    transform: translate(-50%, -50%);
+}
+
+.calendar-day {
+    font-size: 24px;
+    font-weight: 700;
+    transform: translate(-50%, -10%);
+} 
+
+.song-sheet-nickname {
+    left: 5px;
+    bottom: 10px;
+    color: #ffffff;
+    font-size: 12px;
+
+    span {
+        margin-left: 4px;
+    }
+}
+
+.play-count {
+    top: 5px;
+    right: 10px;
+    color: #ffffff;
+}
+
+.play-song-but {
+    opacity: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    right: 10px;
+    bottom: 10px;
+    width: 30px;
+    height: 30px;
+    background-color: #ffffff;
+    color: red;
+    border-radius: 50%;
+    transition: opacity 0.5s;
+}
+
+.copywriter-details {
+    margin-top: 5px;
+    -webkit-line-clamp: 2;
+    transition: color 0.5s;
+
+    &:hover {
+        color: #000000;
+    }
+}   
+</style>

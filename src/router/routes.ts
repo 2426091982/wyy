@@ -22,24 +22,9 @@ const routes: RouteRecordRaw[] = [
                 component: Recommend,
             },
             {
-                path: 'handtailor',
-                name: '专属定制',
-                component: () => import('@/views/discoveMusic/handtailor/handtailor.vue'),
-            },
-            {
                 path: 'songSheet',
                 name: '歌单',
                 component: () => import('@/views/discoveMusic/songSheet/songSheet.vue'),
-            },
-            {
-                path: 'rankingList',
-                name: '排行榜',
-                component: () => import('@/views/discoveMusic/rankingList/rankingList.vue'),
-            },
-            {
-                path: 'singer',
-                name: '歌手',
-                component: () => import('@/views/discoveMusic/singer/singer.vue'),
             },
             {
                 path: 'latestMusic',
@@ -108,14 +93,19 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/components/playList/playList.vue'),
             },
             {
-                path: 'comment',
-                component: () => import('@/components/comment.vue'),
-            },
-            {
                 path: 'collection',
                 component: () => import('@/components/collection.vue'),
             }
         ],
+    },
+    {
+        path: '/mv/:id',
+        component: () => import('@/views/mv/mv.vue'),
+    },
+    {
+        path: '/highquality/:cat',
+        name: '精品歌单',
+        component: () => import('@/components/highqualitySongSheet.vue'),
     }
 ];
 

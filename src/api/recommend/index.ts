@@ -11,3 +11,10 @@ export const getPrivateContent = () => http.get('/personalized/privatecontent');
 
 // 获取最新音乐
 export const getNewSong = () => http.get('/personalized/newsong', { limit: 12, });
+
+/**
+ * 获取相关视频
+ * @param id 视频ID
+ * @returns 
+ */
+export const getAboutMv = (id: number) => http.get('/related/allvideo', {id, });

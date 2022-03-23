@@ -110,7 +110,7 @@ export const parseCommentData = (comments: CommentInfo[]) => {
             ], 
             item.beReplied
         );
-        data[i].beReplied.forEach((item, k) => {
+        data[i].beReplied && data[i].beReplied.forEach((item, k) => {
             data[i].beReplied[k].user = deconstruction(
                 [
                     'avatarUrl',

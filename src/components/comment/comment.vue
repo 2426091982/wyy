@@ -94,7 +94,8 @@ const textareaChange = (e: Event) => {
     }
 };
 // 清除冒泡
-const stopPropagation = (e: KeyboardEvent) => if (e.code === 'Space') stop(e); 
+const stopPropagation = (e: KeyboardEvent) => { 
+    if (e.code === 'Space') stop(e); 
 };
 </script>
 

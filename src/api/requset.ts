@@ -18,6 +18,7 @@ export const qs = {
     stringify<T extends object>(query: T) {
         let str = '';
         for (const key in query) {
+            if (query[key] === undefined) break;
             str += `${key}=${query[key]}&`;
         }
         return str.slice(0, -1);
@@ -77,6 +78,10 @@ class Request {
     }
 
     responseInterceptor(response: any) {
+        if ('subed' in response) {
+            response.data.subed = response.subed;
+        }
+        
         switch (response.code) {
         case 200:
             return response.data ?? response;

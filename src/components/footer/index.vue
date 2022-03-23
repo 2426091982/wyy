@@ -10,7 +10,7 @@ import {
 } from '@ant-design/icons-vue';
 import { 
     getItem,
-    handleTime, 
+    handlePlayTime, 
     now, 
     setItem, 
     stop, 
@@ -35,6 +35,7 @@ const main = ref();
 const sound = ref(100);
 const showLatelyList = ref(false);
 const showLyric = ref(false);
+const startPlay = ref(false);
 const lyric = ref('网抑云音乐');
 const line = ref<HTMLDivElement>();
 const spot = ref<HTMLSpanElement>();
@@ -49,6 +50,7 @@ let totalT = 0;
 let currentT = 0;
 let wait = false;
 let isMute = false;
+let timer: NodeJS.Timeout;
 let timeout: NodeJS.Timeout;
 let ooldSound = sound.value;
 let key = getItem('play-modle') || 0;
@@ -59,12 +61,18 @@ let playModle = [
 ];
 let modle = ref(playModle[key]);
 
+const handleStartPlay = () => {
+    clearTimeout(timer);
+    startPlay.value = true;
+    timer = setTimeout(() => startPlay.value = false, 2000);
+};
 // 播放模式
 const playStrategy = {
     0() { // 单曲循环
         let timer = setTimeout(() => {
             playSong();
             clearTimeout(timer);
+            handleStartPlay();
         });
     },
     1(next: boolean) { // 列表循环
@@ -78,6 +86,7 @@ const playStrategy = {
             index > 0 ? --index : index = list.length - 1;
         }
         const songInfo = list[index];
+        handleStartPlay();
         playListSong(songInfo, index);
     },
     2() { // 随机播放
@@ -95,6 +104,7 @@ const playStrategy = {
         };
         index = randomI();
         prevI = index;
+        handleStartPlay();
         playListSong(list[index], index);
     },
 };
@@ -146,6 +156,7 @@ const setProgress = (progress: number | string) => {
  */
 const playSong = () => {
     if (!currentMusic.url) return;
+    if (!currentMusic.play) handleStartPlay();
     store.commit('currentMusic/playSong', !currentMusic.play);
 };
 
@@ -155,7 +166,7 @@ const playSong = () => {
 const currentTime = () => {
     if(!audio.value || !line.value || !spot.value) return;
     currentT = Math.ceil(audio.value.currentTime);
-    store.commit('currentMusic/changeCurrentTime', handleTime(Math.min(currentT, totalT)));
+    store.commit('currentMusic/changeCurrentTime', handlePlayTime(Math.min(currentT, totalT)));
     const progress = (currentT / totalT * 100 || 0);
     setProgress(progress);
 };
@@ -166,7 +177,7 @@ const currentTime = () => {
 const totalTime = () => {
     if(!audio.value) return;
     totalT = Math.floor(audio.value.duration);
-    store.commit('currentMusic/changeTotalTime', handleTime(totalT));
+    store.commit('currentMusic/changeTotalTime', handlePlayTime(totalT));
 };
 
 /**
@@ -313,6 +324,7 @@ onMounted(() => {
     let canplay = () => {
         wait = false;
         totalTime();
+        handleStartPlay();
         const currentPlayItem = Object.assign({
             composer: currentMusic.artists,
             name: currentMusic.name,
@@ -489,6 +501,9 @@ watch(() => currentMusic.url, watchUrl);
         </div>
         <menu-unfold-outlined class="control-but" @click.stop="switchshowLatelyList"/>
     </div>
+    <out-in mode="default">
+        <div v-show="startPlay" class="tips-play base-absolute base-pointer"> 已开始播放 </div>
+    </out-in>
     <a-drawer
         v-model:visible="showLatelyList"
         class="lately-list showLatelyList"
@@ -777,6 +792,22 @@ watch(() => currentMusic.url, watchUrl);
 
 .lately-list .ant-drawer-body {
     padding: 0;
+}
+
+.tips-play {
+    padding: 4px 15px;
+    bottom: 60px;
+    right: 30px;
+    border-radius: 4px;
+    box-shadow: 0px 0px 10px #999999;
+    background-color: #ffffff;
+    font-size: 12px;
+    transition: color 0.2s;
+    z-index: 1000;
+
+    &:hover {
+        color: #cccccc;
+    }
 }
 </style>
 

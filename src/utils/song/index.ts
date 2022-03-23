@@ -4,11 +4,11 @@ import { PlayListInfo } from "@/store/types/playList";
 import { RecommendSongsData } from "@/store/types/recommendSongs";
 import { SongData } from "@/types/song";
 import { message } from "ant-design-vue";
-import { handleTime, parseArtists } from "..";
+import { handlePlayTime, parseArtists } from "..";
 import { parseRecommendSongs } from "../parseData";
 
 /* 单首音乐信息（含URL） */
-const song = async (id: number): Promise<SongData> => {
+export const songData = async (id: number): Promise<SongData> => {
     const [ songData ] = await getSongUrl(id) as SongData[];
     return songData;
 };
@@ -27,7 +27,7 @@ export const getSongSheetSongsData = async (id: number, limit = 20, offset = 0) 
 };
 
 const playStrategy = {
-    song,
+    song: songData,
     sheet: getSongSheetSongsData,
 };
 
@@ -64,14 +64,13 @@ export const toPlayList = (songs: RecommendSongsData[]) => {
         const al = track.al;
         playList.push({
             artists: parseArtists(track.ar),
-            currentTime: '00:00',
             id: track.id,
             likes: false,
             name: track.name,
             pic: al.picUrl,
             play: true,
             playTime: 0,
-            totalTime: handleTime(track.dt / 1000),
+            totalTime: handlePlayTime(track.dt / 1000),
         } as PlayListInfo);
     }));
     return playList;
@@ -96,7 +95,11 @@ export const playListSong = async (songInfo: PlayListInfo, index: number) => {
         // }
         const [{ url, }] = await getSongUrl(songInfo.id) as SongData[];
         songInfo.url = url;
+        if (songInfo.ar) {
+            songInfo.artists = parseArtists(songInfo.ar);
+        }
     }
+    
     store.commit('playList/changeIndex', index);
     store.commit('currentMusic/changeState', songInfo);
 };
@@ -112,5 +115,9 @@ export const changePlayList = (tracks: RecommendSongsData[], trackCount: number,
         songs: id !== -1 ? toPlayList(tracks) : tracks, 
         size: trackCount,
         id,
+    });
+    store.commit('playList/createCurrentList', {
+        id,
+        songs: toPlayList(tracks),
     });
 };

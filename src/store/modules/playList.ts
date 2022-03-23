@@ -1,21 +1,20 @@
 import { PlayList, PlayListInfo } from "../types/playList";
-import { SongSheetData } from "../types/songSheet";
 
 const key = 'play-list';
 const lately = JSON.parse(localStorage.getItem(key) || '[]') as PlayListInfo[];
 const playList: PlayList = {
     namespaced: true,
     state: {
-        lately,
-        playListId: -1,
-        cacheSongSheets: [],
-        playList: lately,
-        currentList: {
+        lately, // 最近播放
+        playListId: -1, // 播放中歌单的ID
+        cacheSongSheets: [], // 歌单缓存区
+        playList: lately, // 播放中的歌单
+        currentList: { // 当前播放的列表
             id: -1,
             songs: [],
         },
-        index: -1,
-        total: lately.length,
+        index: -1, // 当前歌曲在歌单中的索引
+        total: lately.length, // 歌单歌曲总数
     },
     mutations: {
         updateState(state, data) {
@@ -23,14 +22,19 @@ const playList: PlayList = {
             const list = state.lately;
             for (let i = 0; i < list.length; i++) {
                 const item = list[i];
+                if (i === 99 && item.id !== data.id) {
+                    list.pop();
+                    break; // 限制最近播放最多100条数据
+                }
                 if (item.id === data.id) {
                     flag = true;
                     Object.assign(list[i], data); // 新数据合并到旧数据
+                    list.unshift(...list.splice(i, 1)); // 将播放的数据移动到第一条
                     break;
                 }
             }
             if (!flag) {
-                list.unshift(data);
+                list.unshift(data); // 新增数据
                 if (state.playListId === -1) {
                     ++state.total;
                 }
@@ -53,6 +57,16 @@ const playList: PlayList = {
             } else {
                 songSheets.shift();
                 songSheets.push(data);
+            }
+        },
+        updateCacheSongSheets(state, { id, songs, }) {
+            const songSheets = state.cacheSongSheets;
+            for (let i = 0; i < songSheets.length; i++) {
+                const songSheet = songSheets[i];
+                if (id === songSheet.id) {
+                    songSheet.info.tracks.push(...songs);
+                    break;
+                }
             }
         },
         changePlayList(state, playList) {

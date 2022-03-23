@@ -8,7 +8,7 @@ import { JsonData, UserInfo } from '@/store/types/user';
 import { message } from "ant-design-vue";
 import { InferComment } from './types';
 import md5 from "md5";
-import { isString } from '@vue/shared';
+import { TagsData } from '@/store/types/songSheet';
 
 export const isObject = <T>(value: T) => typeof value === 'object' && value !== null; 
 
@@ -169,7 +169,7 @@ export const parseDate = (time: number, second = false) => {
  * @param time 时间
  * @returns 时:分:秒 / 分:秒
  */
-export const handleTime = (time: number) => {
+export const handlePlayTime = (time: number) => {
     const hours = Math.floor(time / 60 / 60);
     let minute = Math.floor(time / 60);
     minute = minute >= 60 ? Math.floor(minute / 60) : minute;
@@ -199,6 +199,20 @@ export const parseArtists = (artists: JsonData['song']['artists']) => {
     let names = ``;
     artists.forEach((item) => names += `/${item.name}`);
     return names.slice(1);
+};
+
+/**
+ * 将子标签分类
+ * @param categories 分类标识
+ * @param tags 群体标签
+ */
+export const handleTags = (categories: TagsData['categories'], tags: TagsData['sub']) => {
+    const data: TagsData['sub'][]  = [];
+    tags.forEach((tag) => {
+        const category = tag.category;
+        isArray(data[category]) ? data[category].push(tag) : data[category] = [tag];
+    });
+    return data;
 };
 
 /**

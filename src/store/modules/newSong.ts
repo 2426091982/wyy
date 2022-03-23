@@ -7,7 +7,7 @@ const newSong: NewSong = {
     },
     mutations: {
         push(state, value) {
-            state.list.push(...value);
+            state.list = value;
         },
     },
 };

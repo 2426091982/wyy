@@ -12,15 +12,17 @@ defineProps({
 <template>
     <div :class="`private-content-main ${entry ? 'entry' : ''}`">
         <div v-for="item in list" class="private-content-item" :key="item.id">
-            <div class="private-content-bg base-pointer">
-                <div class="private-play-but base-absolute">
-                    <caret-right-outlined />
+            <router-link :to="`/mv/${item.id}`">
+                <div class="private-content-bg base-pointer">
+                    <div class="private-play-but base-absolute">
+                        <caret-right-outlined />
+                    </div>
+                    <img :src="entry ? item.sPicUrl : item.picUrl + '?param=350y200'" >
                 </div>
-                <img :src="entry ? item.sPicUrl : item.picUrl + '?param=350y200'" >
-            </div>
-            <div class="private-content-details">
-                <span> {{ item.name }} </span>
-            </div>
+                <div class="private-content-details">
+                    <span> {{ item.name }} </span>
+                </div>
+            </router-link>
         </div>
     </div>
 </template>
@@ -56,5 +58,9 @@ defineProps({
     width: 350px;
     border-radius: 8px;
     overflow: hidden;
+}
+
+.private-content-details {
+    color: #333333;
 }
 </style>

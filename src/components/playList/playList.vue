@@ -43,6 +43,29 @@ const currentMusic = store.state.currentMusic;
 const playList = store.state.playList;
 const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE;
 
+// 获取列表
+const list = (() => {
+    const currentList = playList.currentList;
+    if (props.bigList && props.id === currentList.id) { // 当前播放列表ID和现在列表一样
+        if (props.tracks.length > currentList.songs.length) {
+            return props.tracks;
+        } else {
+            return currentList.songs;
+        }
+    } else if (props.bigList) { // 进入其他歌单列表
+        const songSheets = playList.cacheSongSheets;
+        for(let i = 0; i < songSheets.length; i++){
+            const songSheet = songSheets[i];
+            if (songSheet.id === props.id) {
+                return toPlayList(songSheet.info.tracks);
+            }
+        }
+        return props.tracks;
+    } else { // 侧边列表
+        return playList.playList;
+    }
+})();
+
 /* 加载歌曲数据 */
 const loadSongsData = () => {
     if (wait) return;
@@ -76,6 +99,8 @@ const loadSongsData = () => {
             let songsData = toPlayList(songs);
             if (bigList) {
                 emit('changeTracks', songsData);
+                list.push(...songsData);
+                store.commit('playList/updateCacheSongSheets', { id, songs, });
             } else if (!bigList && id === playList.currentList.id) {
                 // 如果侧边列表中加载的数据大列表中也用到，那么将同步到大列表中
                 store.commit('playList/updateCurrentList', songsData);
@@ -202,8 +227,8 @@ onBeforeUnmount(() => {
                 <span class="flex-2 size-time" style="color: #333333">时长</span>
             </div>
             <div 
-                v-for="(item, key) in (bigList ? tracks : playList.playList)"
-                :key="item.id"
+                v-for="(item, key) in list"
+                :key="key"
                 :class="`current-play-item ${currentMusic.id === item.id ? 'play-item' : ''}`"
                 @dblclick="playSong(item, key)"
             >

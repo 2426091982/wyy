@@ -4,6 +4,7 @@ import {
     mountData 
 } from './utils';
 import { ref } from '@vue/reactivity';
+import { VerticalAlignTopOutlined } from '@ant-design/icons-vue';
 import { onMounted } from '@vue/runtime-core';
 import { message } from 'ant-design-vue';
 import { useRouter } from 'vue-router';
@@ -13,11 +14,14 @@ import Header from '@/components/header/index.vue';
 import routes from '@/router/routes';
 import Login from '@/views/user/index.vue';
 import Player from '@/components/footer/index.vue';
-
+import OutIn from './components/out-in.vue';
+import zhCN from 'ant-design-vue/es/locale/zh_CN';
 
 let store = useStore();
 let router = useRouter();
 let selectedKeys = ref(['-1']);
+
+const target = () => document.querySelector('main');
 
 window.addEventListener('online', () => (store.state.onLine = true));
 window.addEventListener('offline', () => (store.state.onLine = false));
@@ -42,38 +46,49 @@ watch( // 观察当前路由的meat有没有name，没有则不会选中导航�
 </script>
 
 <template>
-    <a-layout style="width: 100%; height: 100%">
-        <Header></Header>
-        <a-layout>
-            <a-layout-sider theme='light'>
-                <a-menu 
-                    v-model:selectedKeys="selectedKeys" 
-                    mode="inline"
-                >
-                    <template v-for="route in routes">
-                        <a-menu-item 
-                            v-if="route.meta && route.meta?.name !== '我的音乐'" 
-                            :key="route.meta?.key"
-                        >
-                            <router-link :to="route.path"> {{ route.meta?.name }} </router-link>
-                        </a-menu-item>
-                    </template>
-                    <a-menu-item-group>
-                        <template #title> 我的音乐 </template>
-                        <a-menu-item key="112">本地下载</a-menu-item>
-                        <a-menu-item key="113">最近播放</a-menu-item>
-                    </a-menu-item-group>
-                </a-menu>
-            </a-layout-sider>
-            <a-layout-content class="main scroll-style">
-                <router-view></router-view>
-            </a-layout-content>
+    <a-config-provider :locale="zhCN">
+        <a-layout style="width: 100%; height: 100%">
+            <Header></Header>
+            <a-layout>
+                <a-layout-sider theme='light'>
+                    <a-menu 
+                        v-model:selectedKeys="selectedKeys" 
+                        mode="inline"
+                    >
+                        <template v-for="route in routes">
+                            <a-menu-item 
+                                v-if="route.meta && route.meta?.name !== '我的音乐'" 
+                                :key="route.meta?.key"
+                            >
+                                <router-link :to="route.path"> {{ route.meta?.name }} </router-link>
+                            </a-menu-item>
+                        </template>
+                        <a-menu-item-group>
+                            <template #title> 我的音乐 </template>
+                            <a-menu-item key="112">本地下载</a-menu-item>
+                            <a-menu-item key="113">最近播放</a-menu-item>
+                        </a-menu-item-group>
+                    </a-menu>
+                </a-layout-sider>
+                <a-layout-content class="main scroll-style">
+                    <router-view v-slot="{ Component }">
+                        <out-in>
+                            <keep-alive>
+                                <component :is="Component"/>
+                            </keep-alive>
+                        </out-in>
+                    </router-view>
+                </a-layout-content>
+            </a-layout>
+            <a-layout-footer class="showLatelyList">
+                <player></player>
+            </a-layout-footer>
         </a-layout>
-        <a-layout-footer class="showLatelyList">
-            <player></player>
-        </a-layout-footer>
-    </a-layout>
-    <Login></Login>
+        <Login></Login>
+    </a-config-provider>
+    <a-back-top :target="target">
+        <vertical-align-top-outlined class="base-size22px" />
+    </a-back-top>
 </template>
 
 <style lang="less">
@@ -82,6 +97,10 @@ body {
     width: 100vw;
     height: 100vh;
     overflow: hidden;
+}
+
+ul {
+    list-style: none;
 }
 
 .scroll-style::-webkit-scrollbar {
@@ -151,6 +170,14 @@ body {
     height: 100%;
 }
 
+.base-size12px {
+    font-size: 12px;
+}
+
+.base-size14px {
+    font-size: 14px;
+}
+
 .base-size16px {
     font-size: 16px;
 }
@@ -214,5 +241,19 @@ body {
     border-top: 1px solid #f0f0f0;
     background-color: #ffffff;
     user-select: none;
+}
+
+.ant-back-top {
+    display: flex;
+    bottom: 130px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    color: #ffffff;
+    background-color: rgba(24, 144, 255, 1);
+    transition: background-color 0.5s;
+
+    &:hover {
+        background-color: rgb(19, 117, 207)    }
 }
 </style>

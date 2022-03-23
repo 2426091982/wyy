@@ -5,12 +5,20 @@ type state =  SongSheet['state'];
 export interface SongSheet {
     namespaced: true;
     state: {
+        tagMame: string;
+        tagId: number;
+        tag: Tags[];
+        hotTag: Tags[];
         list: SongSheetData[]; // 所有歌单信息
         // songSheetInfo 单项歌单详细信息
     };
     mutations: {
-        add: (state: state, value: state['list']) => void
+        tagMame: (state: state, name: string) => void;
+        add: (state: state, value: state['list']) => void;
         change:(state: state, value: state['list']) => void;
+        tagId: (state: state, id: number) => void;
+        tag: (state: state, tag: Tags[]) => void;
+        hotTag: (state: state, tag: Tags[]) => void;
     };
 }
 
@@ -46,4 +54,50 @@ export interface Creator {
     nickname: string; // 昵称
     userId: number; // 用户ID
     signature: string; // 个性签名
+}
+
+/**
+ * 歌单分类标签
+ */
+export interface Tags {
+    activity: boolean;
+    category: number;
+    createTime: number;
+    hot: boolean;
+    id: number;
+    name: string;
+    playlistTag: PlaylistTag,
+    position: number;
+    type: number;
+    usedCount: number; // 计数
+}
+
+export interface PlaylistTag {
+    category: number;
+    createTime: number;
+    highQuality: number;
+    highQualityPos: number;
+    id: number;
+    name: string;
+    officialPos: number;
+    position: number;
+    usedCount: number;
+}
+
+export interface Tag {
+    activity: boolean;
+    category: number;
+    hot: boolean;
+    imgId: number;
+    imgUrl: null | string;
+    name: string;
+    resourceCount: number;
+    resourceType: number;
+    type: number;
+}
+
+export interface TagsData {
+    all: Tag;
+    categories: string[];
+    sub: Tag[];
 }

@@ -20,15 +20,17 @@ routers.forEach((router) => {
 </script>
 
 <template>
-    <NavBar :list="list"></NavBar>
-    <div class="main-base">
-        <router-view v-slot="{ Component }">
-            <out-in>
-                <keep-alive>
-                    <component :is="Component"/>
-                </keep-alive>
-            </out-in>
-        </router-view>
+    <div>
+        <NavBar :list="list"></NavBar>
+        <div class="main-base">
+            <router-view v-slot="{ Component }">
+                <out-in>
+                    <keep-alive>
+                        <component :is="Component"/>
+                    </keep-alive>
+                </out-in>
+            </router-view>
+        </div>
     </div>
 </template>
 
