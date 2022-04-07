@@ -1,10 +1,18 @@
-import { checkMusic, getPlayListAll, getSongUrl } from "@/api";
+import { 
+    checkMusic, 
+    getPlayListAll, 
+    getSongUrl 
+} from "@/api";
+import { 
+    handlePlayTime, 
+    parseArtists 
+} from "..";
 import { store } from "@/store";
 import { PlayListInfo } from "@/store/types/playList";
 import { RecommendSongsData } from "@/store/types/recommendSongs";
 import { SongData } from "@/types/song";
 import { message } from "ant-design-vue";
-import { handlePlayTime, parseArtists } from "..";
+import { LyricData } from "@/types/lyric";
 import { parseRecommendSongs } from "../parseData";
 
 /* 单首音乐信息（含URL） */
@@ -85,14 +93,6 @@ export const toPlayList = (songs: RecommendSongsData[]) => {
  */
 export const playListSong = async (songInfo: PlayListInfo, index: number) => {
     if (!songInfo.url) {
-        // const success = await checkSong(songInfo.id);
-        // if (!success) {
-        //     ++index;
-        //     message.info('为你自动播放下一首');
-        //     console.log(index, playList.playList[index]);
-        //     playListSong(playList.playList[index], index);
-        //     return;
-        // }
         const [{ url, }] = await getSongUrl(songInfo.id) as SongData[];
         songInfo.url = url;
         if (songInfo.ar) {
@@ -102,6 +102,7 @@ export const playListSong = async (songInfo: PlayListInfo, index: number) => {
     
     store.commit('playList/changeIndex', index);
     store.commit('currentMusic/changeState', songInfo);
+    store.commit('currentMusic/playSong', true);
 };
 
 /**
@@ -120,4 +121,51 @@ export const changePlayList = (tracks: RecommendSongsData[], trackCount: number,
         id,
         songs: toPlayList(tracks),
     });
+};
+
+/**
+ * 将源数据转换成可识别的歌词数据
+ * @param lyric 源歌词数据
+ * @returns 转换完成的歌词数组
+ */
+export const parseLryic = (lyric: string): LyricData[] => {
+    const lyricData: LyricData[] = [];
+    const reg = /(\[(\d{2}):(\d{2})(.\d{2,3})\])(.+)\n/g;
+    let data: RegExpExecArray | null;
+    while ((data = reg.exec(lyric)) !== null) {
+        const time = 
+            parseInt(data[2]) * 60 + 
+            parseInt(data[3]) + 
+            parseFloat(data[4]);
+        lyricData.push({
+            time,
+            lyric: data[5] || ' ',
+        });
+    }
+    return lyricData;
+};
+
+export const setCurrentTime = (time?: number) => {
+    const audio = document.querySelector('#audio') as HTMLAudioElement;
+    if(!audio || !audio.duration) return;
+    const totalT = audio.duration;
+    if (time != null)  {
+        audio.currentTime = time;
+    }
+    const curT = Math.ceil(audio.currentTime);
+    store.commit('currentMusic/changeCurrentTime', handlePlayTime(Math.min(curT, totalT)));
+    const progress = (curT / totalT * 100 || 0);
+    setProgress(progress);
+};
+
+/**
+ * 设置当前进度条的位置
+ * @param progress 位置（百分比）
+ */
+export const setProgress = (progress: number | string) => {
+    const line = document.querySelector('#progress-play-line') as HTMLDivElement;
+    const spot = document.querySelector('#spot') as HTMLSpanElement;
+    if (!line || !spot) return;
+    line.style.width = `${progress}%`;
+    spot.style.left = `${progress}%`;
 };

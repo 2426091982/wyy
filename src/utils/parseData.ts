@@ -138,33 +138,6 @@ export const parseBannerData = (banners: Banners) => {
     return data;
 };
 
-/* 解析歌单数据 */
-export const parseSongSheetData = (songSheet: SongSheetData[]) => {
-    const data = deconstruction([
-        'copywriter',
-        'createTime',
-        'creator',
-        'id',
-        'name',
-        'picUrl',
-        'coverImgUrl',
-        'playcount',
-        'trackCount'
-    ], songSheet);
-
-    data['creator'] = deconstruction([
-        'avatarImgId',
-        'avatarUrl',
-        'backgroundUrl',
-        'description',
-        'nickname',
-        'signature',
-        'userId'
-    ], data['creator']);
-
-    return data;
-};
-
 /* 解析最新音乐数据 */
 export const parseNewSongData = (newSong: NewSongData[]) => {
     const data = deconstruction([

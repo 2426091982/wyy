@@ -4,7 +4,7 @@ import http from '../requset';
 export const getBanners = () => http.get('/banner');
 
 // 获取推荐歌单
-export const getRecommendSongSheet = () => http.get('/recommend/resource');
+export const getRecommendSongSheet = (limit = 9) => http.get('/personalized', { limit, });
 
 // 获取独家放送
 export const getPrivateContent = () => http.get('/personalized/privatecontent');

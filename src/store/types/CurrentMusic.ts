@@ -1,9 +1,11 @@
+import { Artists } from "./user";
+
 export interface CurrentMusicState {
     id: number;
     br: number;
     url: string;
     name: string;
-    artists: string;
+    artists: string | Artists[];
     likes: boolean;
     pic: string;
     currentTime: string;

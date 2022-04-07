@@ -1,6 +1,13 @@
 <script lang='ts' setup>
+import { 
+    playListDetail, 
+    querySong 
+} from "@/utils/sheetSong";
+import { 
+    CrownOutlined,
+    CaretRightOutlined
+} from '@ant-design/icons-vue';
 import { SongSheetData } from "@/store/types/songSheet";
-import { CrownOutlined } from '@ant-design/icons-vue';
 import { PropType } from "@vue/runtime-core";
 
 defineProps({
@@ -14,14 +21,21 @@ defineProps({
     <div v-if="list" class="highquality-list">
         <div v-for="(item, key) in list" :key="key" class="highquality-item">
             <div class="highquality-img">
-                <div class="base-absolute">
+                <div class="tabs-top base-absolute">
                     <crown-outlined />
                 </div>
-                <img :src="item.picUrl || item.coverImgUrl + '?param=135y135'" alt="" width="135" height="135">
+                <img :src="item.picUrl || item.coverImgUrl + '?param=135y135'">
+                <div class="play-song-but base-absolute showLatelyList" @click="querySong(item.id, 'sheet', $event)">
+                    <caret-right-outlined class="base-size22px base-pointer" />
+                </div>
             </div>
             <div class="highquality-detail">
-                <div class="highquality-title">{{ item.name }}</div>
-                <div class="highquality-author"> {{ item.description }} </div>
+                <router-link 
+                    :to="`/songSheet/${item.id}`"
+                    class="highquality-title base-pointer" 
+                    @click="playListDetail(item.id)"
+                >{{ item.name }}</router-link>
+                <div class="highquality-author base-pointer">by {{ item.creator.nickname }} </div>
             </div>
         </div>
     </div>
@@ -29,31 +43,66 @@ defineProps({
 
 <style lang='less'>
 .highquality-list {
+    margin: 0 auto;
     display: flex;
-    width: 100%;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     justify-content: space-between;
     gap: 20px;
 }
 
 .highquality-img {
     position: relative;
-    border-radius: 8px;
+    width: 135px;
+    height: 135px;
+    
+    img {
+        border-radius: 8px;
+    }
 
-    .base-absolute {
+    .tabs-top {
         top: 0;
         left: 0;
-        border-top: 10px solid #rgb(209, 173, 15);
+        border-top: 20px solid rgb(209, 173, 15);
+        border-left: 20px solid rgb(209, 173, 15);
+        border-bottom: 20px solid transparent;
+        border-right: 20px solid transparent;
+        border-radius: 8px 0 0 0;
         color: #ffffff;
+        
+        span {
+            position: absolute;
+            top: -15px;
+            left: -15px;
+        }
     }
 }
 
 .highquality-item {
-    flex-basis: 30%;
+    display: flex;
+    width: 30%;
+    align-items: center;
+    gap: 10px;
 }
 
 .highquality-detail {
     display: flex;
+    padding-top: 20px;
+    flex-direction: column;
     height: 100%;
+    gap: 5px;
+}
+
+.highquality-title {
+    color: #000000;
+    font-size: 13px;
+}
+
+.highquality-author {
+    color: #666666;
+    font-size: 12px;
+
+    &:hover {
+        color: #000000;
+    }
 }
 </style>

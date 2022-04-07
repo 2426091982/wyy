@@ -3,9 +3,8 @@ import { store } from '@/store';
 import { RecommendSongsData } from '@/store/types/recommendSongs';
 import { SongSheetData } from '@/store/types/songSheet';
 import { RecommendSongsStatic, SongData } from '@/types/song';
-import { parseSongSheetInfo } from '@/utils/parseData';
 import { ref } from 'vue';
-import { getItem, parseArtists } from '..';
+import { getItem, parseArtists, stop } from '..';
 import { changePlayList, getSongInfo } from '../song';
 
 /**
@@ -14,16 +13,7 @@ import { changePlayList, getSongInfo } from '../song';
  * @returns 
  */
 export const playListDetail = async (sid: number) => {
-    const songSheets = store.state.playList.cacheSongSheets;
     const { playlist, } = await getPlayListDetail(sid) as { playlist: SongSheetData };
-    for (let i = 0; i < songSheets.length; i++) {
-        const songSheet = songSheets[i];
-        if (songSheet.id === sid) return playlist; 
-    }
-    store.commit('playList/addCacheSongSheets', { 
-        id:sid, 
-        info: parseSongSheetInfo(playlist),
-    });
     return playlist;
 };
 
@@ -59,4 +49,18 @@ export const playSong = async (sid: number, stype: Type, songs = rSong.value, re
         url,
     });
     store.commit('playList/changeIndex', index);
+};
+
+let prevSongId = -1;
+export const querySong = async (sid: number, type: Type, e: Event) => {
+    stop(e);
+    if (prevSongId === sid) {
+        store.commit('currentMusic/playSong', !store.state.currentMusic.play);
+        return;
+    }
+    const data = await getSongInfo(sid, type) as RecommendSongsData[];
+    await playSong(+data[0].id, 'song', data, false);
+    const playList = await playListDetail(sid);
+    prevSongId = sid;
+    changePlayList(playList.tracks, playList.trackCount, sid);
 };

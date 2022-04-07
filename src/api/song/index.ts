@@ -20,3 +20,8 @@ export const getRecommendSongs = () => http.get('/recommend/songs');
 
 /* 获取歌单歌曲 */
 export const getPlayListAll = (id: number, limit = 20, offset = 0) => http.get('/playlist/track/all', { id, limit, offset, });
+
+/**
+ * 新歌速推
+ */
+export const getTopSong = (type: number) => http.get('/top/song', { type, });

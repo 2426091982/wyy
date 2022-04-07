@@ -9,6 +9,8 @@ import {
     User,
     UserState
 } from './user';
+import { Search } from './search';
+import { Lyric } from './lyric';
 
 // RootStore
 type Options = {
@@ -29,6 +31,8 @@ type Options = {
         privateContent: PrivateContent;
         newSong: NewSong;
         recommendSongs: RecommendSongs;
+        search: Search;
+        lyric: Lyric;
     },
 };
 
@@ -43,6 +47,8 @@ type State = {
     privateContent: PrivateContent['state'];
     newSong: NewSong['state'];
     recommendSongs: RecommendSongs['state'];
+    search: Search['state'];
+    lyric: Lyric['state'];
 };
 
 declare module '@vue/runtime-core' {

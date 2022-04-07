@@ -77,24 +77,13 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/dynamic/dynamic.vue'),
     },
     {
-        path: '/follows',
-        component: () => import('@/views/follows/follows.vue'),
-    },
-    {
-        path: '/followeds',
-        component: () => import('@/views/followeds/followeds.vue'),
-    },
-    {
         path: '/songSheet/:id',
+        name: 'songSheet',
         component: () => import('@/views/songSheet/songSheet.vue'),
         children: [
             {
                 path: '',
                 component: () => import('@/components/playList/playList.vue'),
-            },
-            {
-                path: 'collection',
-                component: () => import('@/components/collection.vue'),
             }
         ],
     },
@@ -106,6 +95,16 @@ const routes: RouteRecordRaw[] = [
         path: '/highquality/:cat',
         name: '精品歌单',
         component: () => import('@/components/highqualitySongSheet.vue'),
+    },
+    {
+        path: '/lyric',
+        name: '歌词',
+        component: () => import('@/views/lyric/index.vue'),
+    },
+    {
+        path: '/search/:keyword',
+        name: '搜索详情',
+        component: () => import('@/views/search/index.vue'),
     }
 ];
 

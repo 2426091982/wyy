@@ -1,18 +1,16 @@
-export interface Lyic {
-    code: number;
+export interface LyricSourceData {
     klyric: {
         lyric: string;
-        version: number
-    }
+        version: number;
+    };
     lrc: {
         lyric: string;
         version: number;
     }
-    qfy: boolean;
-    sfy: boolean;
-    sgc: boolean;
-    tlyric: {
-        lyric: string;
-        version: number
-    }
 }
+
+export interface LyricData {
+    time: number;
+    lyric: string;
+}
+

@@ -73,7 +73,7 @@ watch( // 观察当前路由的meat有没有name，没有则不会选中导航�
                 <a-layout-content class="main scroll-style">
                     <router-view v-slot="{ Component }">
                         <out-in>
-                            <keep-alive>
+                            <keep-alive exclude="songSheet" max="10">
                                 <component :is="Component"/>
                             </keep-alive>
                         </out-in>
@@ -97,6 +97,7 @@ body {
     width: 100vw;
     height: 100vh;
     overflow: hidden;
+    // filter: saturate(0%);
 }
 
 ul {
@@ -124,12 +125,12 @@ ul {
 }
 
 .scroll-style:hover::-webkit-scrollbar-thumb {
-    background: #666666;
+    background: #999999;
     box-shadow: 0px 0px 10px #666;
 }
 
 .scroll-style::-webkit-scrollbar-thumb:hover {
-    background: #999999;
+    background: #cccccc;
 }
 
 .scroll-style::-webkit-scrollbar-corner {
@@ -138,7 +139,7 @@ ul {
 
 .scroll-style:hover:-webkit-scrollbar-corner {
     background: transparent;
-}
+} 
 
 .scroll-style::selection {
     background-color: #1890ff;
@@ -166,7 +167,6 @@ ul {
 }
 
 .ant-menu  {
-    //border-right: 1px solid #f0f0f0;
     height: 100%;
 }
 

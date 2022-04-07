@@ -12,6 +12,8 @@ import songSheet from './modules/songSheet';
 import privateContent from './modules/privateContent';
 import newSong from './modules/newSong';
 import recommendSongs from './modules/recommendSongs';
+import search from './modules/search';
+import lyric from './modules/lyric';
 
 export const store = createStore({
     state: {
@@ -35,6 +37,8 @@ export const store = createStore({
         privateContent,
         newSong,
         recommendSongs,
+        search,
+        lyric,
     },
 });
 

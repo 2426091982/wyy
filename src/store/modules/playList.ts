@@ -7,7 +7,6 @@ const playList: PlayList = {
     state: {
         lately, // 最近播放
         playListId: -1, // 播放中歌单的ID
-        cacheSongSheets: [], // 歌单缓存区
         playList: lately, // 播放中的歌单
         currentList: { // 当前播放的列表
             id: -1,
@@ -46,35 +45,14 @@ const playList: PlayList = {
             state.total = 0;
             localStorage.removeItem(key);
         },
-        addCacheSongSheets(state, { id,  info, }) {
-            const songSheets = state.cacheSongSheets;
-            const data = {
-                id,
-                info,
-            };
-            if (songSheets.length < 5) {
-                songSheets.push(data);
-            } else {
-                songSheets.shift();
-                songSheets.push(data);
-            }
-        },
-        updateCacheSongSheets(state, { id, songs, }) {
-            const songSheets = state.cacheSongSheets;
-            for (let i = 0; i < songSheets.length; i++) {
-                const songSheet = songSheets[i];
-                if (id === songSheet.id) {
-                    songSheet.info.tracks.push(...songs);
-                    break;
-                }
-            }
-        },
         changePlayList(state, playList) {
             state.playList = playList.songs;
             state.playListId = playList.id;
             state.total = playList.size;
         },
         addPlayList(state, songs) {
+            const id = state.playListId;
+            if (id === -1 || id === -11) return;
             state.playList.push(...songs);
         },
         changeIndex(state, index) {

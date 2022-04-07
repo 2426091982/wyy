@@ -8,17 +8,13 @@ import {
 import { 
     getItem,  
     parsePlayCount, 
-    stop,
     day
 } from '@/utils';
 import { 
     playListDetail, 
-    playSong 
+    playSong,
+    querySong
 } from '@/utils/sheetSong';
-import { 
-    changePlayList, 
-    getSongInfo 
-} from '@/utils/song';
 import { useStore } from '@/store';
 import { RecommendSongsData } from '@/store/types/recommendSongs';
 import { SongSheetData } from '@/store/types/songSheet';
@@ -39,28 +35,10 @@ const { dayRecommend, } = defineProps({
     },
 });
 
-type Type = 'song' | 'sheet';
-
-let prevSongId = -1;
-
-const store = useStore();
 const nowDay = day();
+const store = useStore();
 const recommendSongs = getItem('recommend-songs') as RecommendSongsStatic;
 const rSong = ref<RecommendSongsData[]>(recommendSongs?.songs || []);
-
-// 获取列表的前20首歌
-const querySong = async (sid: number, type: Type, e: Event) => {
-    stop(e);
-    if (prevSongId === sid) {
-        store.commit('currentMusic/playSong', !store.state.currentMusic.play);
-        return;
-    }
-    const data = await getSongInfo(sid, type) as RecommendSongsData[];
-    await playSong(+data[0].id, 'song', data, false);
-    const playList = await playListDetail(sid);
-    prevSongId = sid;
-    changePlayList(playList.tracks, playList.trackCount, sid);
-};
 
 if (dayRecommend) {
     onMounted(async () => {
@@ -73,7 +51,6 @@ if (dayRecommend) {
             store.commit('recommendSongs/change', dailySongs);
             rSong.value = dailySongs;
         }
-        
     });
 }
 </script>
@@ -89,7 +66,10 @@ if (dayRecommend) {
                     <span class="calendar base-absolute calendar-day"> {{ nowDay }} </span>
                     <calendar-outlined class="calendar base-absolute" />
                 </div>
-                <div class="play-song-but base-absolute showLatelyList" @click.prevent="playSong(+rSong[0].id, 'song')">
+                <div 
+                    class="play-song-but base-absolute showLatelyList" 
+                    @click.prevent="playSong(+rSong[0].id, 'song')"
+                >
                     <caret-right-outlined class="base-size22px" />
                 </div>
             </div>
@@ -109,14 +89,18 @@ if (dayRecommend) {
         <div class="song-sheet-bg base-pointer">
             <div class="play-count base-absolute">
                 <play-circle-outlined />
-                <span style="margin-left: 2px"> {{ parsePlayCount(String(item.playcount || item.playCount)) }} </span>
+                <span style="margin-left: 2px"> 
+                    {{ parsePlayCount(String(item.playcount || item.playCount)) }} 
+                </span>
             </div>
             <div class="song-sheet-nickname base-absolute">
                 <user-outlined />
                 <span>{{ item.creator.nickname }}</span>
             </div>
             <img :src="item.picUrl || item.coverImgUrl +'?param=200y200'" width="200" height="200">
-            <div class="play-song-but base-absolute showLatelyList" @click="querySong(item.id, 'sheet', $event)">
+            <div 
+                class="play-song-but base-absolute showLatelyList" 
+                @click.stop.prevent="querySong(item.id, 'sheet', $event)">
                 <caret-right-outlined class="base-size22px" />
             </div>
         </div>
@@ -147,10 +131,11 @@ if (dayRecommend) {
         width: 100%;
         height: 100%;
     }
+}
 
-    &:hover .play-song-but {
-        opacity: 1;
-    }
+.song-sheet-bg:hover .play-song-but,
+.highquality-img:hover .play-song-but {
+    opacity: 1;
 }
 
 .song-sheet:first-child .song-sheet-bg {

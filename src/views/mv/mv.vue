@@ -40,14 +40,16 @@ const mvDetail = ref<DetailData>({} as DetailData);
 
 const handleLike = async () => {
     liked.value = !liked.value;
-    await resourceLike(Number(liked.value), 1, mvDetail.value.id);
     message.success(liked.value ? '已点赞' : '已取消点赞');
+    liked.value ? mvDetail.value.likedCount++ : mvDetail.value.likedCount--;
+    await resourceLike(Number(liked.value), 1, mvDetail.value.id);
 };
 
 const handleSub = async () => {
     subed.value = !subed.value;
-    await mvSub(mvDetail.value.id, subed.value ? 0 : 1);
-    message.success(subed.value ? '可在 -> 我的收藏 中查看' : '已取消收藏');
+    subed.value ? mvDetail.value.subCount++ : mvDetail.value.subCount--;
+    message.success(subed.value ? '可在我的收藏中查看' : '已取消收藏');
+    await mvSub(mvDetail.value.id, Number(subed.value));
 };
 
 const init = async () => {
@@ -158,15 +160,23 @@ watch(
             <p v-show="show" class="mv-desc"> {{ mvDetail.desc }} </p>
 
             <div class="mv-btns">
-                <a-button shape="round" @click="handleLike">
+                <a-button 
+                    :class="liked ? 'like' : ''" 
+                    shape="round" 
+                    @click="handleLike"
+                >
                     <template #icon>
-                        <like-outlined :class="liked ? 'like' : ''" />
+                        <like-outlined/>
                     </template>
                     赞( {{ mvDetail.likedCount }} )
                 </a-button>
-                <a-button shape="round" @click="handleSub">
+                <a-button 
+                    :class="subed ? 'like' : ''" 
+                    shape="round" 
+                    @click="handleSub"
+                >
                     <template #icon>
-                        <folder-add-outlined :class="subed ? 'like' : ''" />
+                        <folder-add-outlined />
                     </template>
                     收藏( {{ mvDetail.subCount }} )
                 </a-button>
@@ -247,7 +257,8 @@ watch(
 }
 
 .like {
-    color: #df2f2f;
+    border-color: #1890ff !important;
+    color: #1890ff !important;
 }
 
 .mv-desc {

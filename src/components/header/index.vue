@@ -5,7 +5,6 @@ import {
     LogoutOutlined,
     BellOutlined,
     SettingOutlined,
-    SearchOutlined, 
     CaretDownOutlined,
     UserOutlined 
 } from '@ant-design/icons-vue';
@@ -24,13 +23,10 @@ import { useStore } from '@/store';
 import { loginOut } from '@/utils';
 import historicalRecords from './historicalRecords.vue';
 import Loading from '@/components/loading.vue';
+import Seach from '@/components/search/index.vue';
 
-let value = ref('');
 let loading = ref(true);
 let showDropdown = ref(false);
-let onSearch = () => {
-    console.log('搜索');
-};
 
 const store = useStore();
 const user = store.state.user;
@@ -86,25 +82,20 @@ const sends = async () => {
     ]);
     loading.value = false;
 };
+
 </script>
 
 <template>
     <a-layout-header class="header" style="padding: 0">
         <div class="flex-item">
-            <div class="logo">
+            <div class="logo" @click="$router.push('/')">
                 <img src="/images/logo1.png" alt="logo">
                 网抑云音乐
             </div>
             <div class="historical">
                 <historical-records></historical-records>
             </div>
-            <div class="search">
-                <a-input v-model:vlaue="value" placeholder="大家都在搜索" @keydown.enter="onSearch">
-                    <template v-slot:prefix>
-                        <search-outlined style="color: #fff" @click="onSearch"/>
-                    </template>
-                </a-input>
-            </div>
+            <Seach></Seach>
         </div>
         <div class="flex-item">
             <a-space :size="20">
@@ -139,12 +130,12 @@ const sends = async () => {
                                             </router-link>
                                         </a-col>
                                         <a-col :span="8">
-                                            <router-link to="/follows">
+                                            <router-link to="/">
                                                 <a-statistic class="base-pointer" title="关注" :value="user.follows.size" />
                                             </router-link>
                                         </a-col>
                                         <a-col :span="8">
-                                            <router-link to="/followeds">
+                                            <router-link to="/">
                                                 <a-statistic class="base-pointer" title="粉丝" :value="user.followeds.size" />
                                             </router-link>
                                         </a-col>
@@ -254,25 +245,6 @@ const sends = async () => {
     gap: 10px;
 }
 
-.search  {
-    .ant-input-affix-wrapper {
-        background-color: rgba(255, 255, 255, 0.2);
-        border: none;
-        border-radius: 20px;
-    }
-
-    .ant-input {
-        padding-left: 10px;
-        outline: 0;
-        border: none;
-        background-color: rgba(255, 255, 255, 0);
-        caret-color: #ffffff;
-        &::placeholder {
-            color: rgba(255, 255, 255, 0.6);
-        }
-    }
-}
-
 .login {
     color: #ffffff;
     transition: color 0.2s;
@@ -311,6 +283,7 @@ const sends = async () => {
         transform: translateX(-40%) rotateZ(230deg);
     }
 }
+
 .header-menu {
     margin-top: 10px;
     padding-top: 10px;

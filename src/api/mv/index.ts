@@ -10,7 +10,7 @@ export const getMvUrl = (id: number) => http.get('/mv/url', { id, });
  * 获取MV的点赞转发评论数据
  * @param mvid MVID
  */
-export const getMVInfo = (mvid: number) => http.get('/mv/detail/info', { mvid, });
+export const getMVInfo = (mvid: number) => http.get('/mv/detail/info', { mvid, time: true, });
 
 /**
  * 获取MV详情

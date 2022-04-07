@@ -18,10 +18,12 @@ export const isUndef = <T>(value: T) => value == undefined;
 
 export const toMD5 = (password: string) => md5(password);
 
-export const stop = (e: Event) => e.preventDefault();
+export const stop = (e: Event) => e.stopPropagation();
 
 // 生成时间戳
 export const now = () => Date.now();
+
+export const fn = () => null;
 
 export const day = () => new Date().getDate();
 
@@ -195,7 +197,8 @@ export const handlePlayTime = (time: number) => {
  * 格式化作家名称：xxx/xxx 
  * @param artists 需要解析的对象
  */
-export const parseArtists = (artists: JsonData['song']['artists']) => {
+export const parseArtists = (artists: JsonData['song']['artists'] | string) => {
+    if (typeof artists === 'string') return artists;
     let names = ``;
     artists.forEach((item) => names += `/${item.name}`);
     return names.slice(1);

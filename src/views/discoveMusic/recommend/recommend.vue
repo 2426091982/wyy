@@ -11,8 +11,7 @@ import {
 } from '@vue/runtime-core';
 import { 
     parseBannerData, 
-    parseNewSongData, 
-    parseSongSheetData
+    parseNewSongData
 } from '@/utils/parseData';
 import { 
     CaretRightOutlined
@@ -22,7 +21,7 @@ import {
 } from '@/utils';
 import { songData } from '@/utils/song';
 import { Banners } from '@/types/base';
-import { SongSheetData } from '@/store/types/songSheet';
+import { RecommentSongSheetData, SongSheetData } from '@/store/types/songSheet';
 import { useStore } from '@/store';
 import { PrivateContentData } from '@/store/types/privateContent';
 import { NewSongData } from '@/store/types/newSong';
@@ -32,6 +31,7 @@ import Title from '@/components/title.vue';
 import PrivateContentCard from '@/components/privateContentCard.vue';
 import Loading from '@/components/loading.vue';
 import sheetSongCard from '@/components/sheetSongCard.vue';
+import { getPlayListDetail } from '@/api';
 
 const store = useStore();
 const loading = ref(true);
@@ -78,14 +78,22 @@ onMounted(async () => {
         }
     }
     {   // 推荐歌单
-        let { 
-            code, 
-            recommend, 
-        } =  await getRecommendSongSheet() as Response & { recommend: SongSheetData[] };
+        let {
+            code,
+            result,
+        } =  await getRecommendSongSheet() as Response & { result: RecommentSongSheetData[] };
         if (code === 200) {
-            recommend = parseSongSheetData(recommend);
-            songSheet.value.push(...recommend.splice(0, 9));
-            store.commit('songSheet/add', recommend);
+            const recommendSongList: SongSheetData[] = [];
+            result.forEach(async (songSheet) => {
+                const { 
+                    code, 
+                    playlist, 
+                } = await getPlayListDetail(songSheet.id) as Response & { playlist: SongSheetData };
+                if (code !== 200) return;
+                recommendSongList.push(playlist);
+            });
+            songSheet.value = recommendSongList;        
+            store.commit('songSheet/add', recommendSongList);
         }
     }
     {   // 独家放送
@@ -121,7 +129,7 @@ onMounted(async () => {
             </div>
             <Title title="独家放送" path="/discoveMusic/"></Title>
             <PrivateContentCard :entry="true" :list="privateContent"></PrivateContentCard>
-            <Title title="最新音乐" path="/"></Title>
+            <Title title="最新音乐" path="/discoveMusic/latestMusic"></Title>
             <div class="new-song-main">
                 <div 
                     v-for="item in newSong" 
@@ -129,7 +137,10 @@ onMounted(async () => {
                     :key="item.id"
                 >
                     <div class="new-song-ico">
-                        <div class="play-song-but  base-absolute" @click="playRSong(item)">
+                        <div 
+                            class="play-song-but  base-absolute" 
+                            @click="playRSong(item)"
+                        >
                             <caret-right-outlined class="base-size18px" />
                         </div>
                         <img :src="item.picUrl + '?param=50y50'">
@@ -138,7 +149,7 @@ onMounted(async () => {
                         <div class="new-song-name">
                             {{ item.name }}
                         </div>
-                        <div class="new-song-artists">
+                        <div class="new-song-artists ellipsis">
                             {{ parseArtists(item.song.artists) }}
                         </div>
                     </div>
@@ -194,6 +205,10 @@ onMounted(async () => {
         height: 25px;
         transform: translate(-50%, -50%);
     }
+}
+
+.new-song-info {
+    width: 290px;
 }
 
 .new-song-artists {

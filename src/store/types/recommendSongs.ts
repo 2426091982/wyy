@@ -15,12 +15,15 @@ export interface RecommendSongs {
 
 export interface RecommendSongsData {
     name: string;
+    alia: string[],
     al: {
         id: number;
         picUrl: string; 
+        name: string;
     };
     ar: Artists[];
     br: number;
     id: string | number;
     dt: number;
+    pop: number;
 }

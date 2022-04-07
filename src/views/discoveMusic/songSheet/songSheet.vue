@@ -1,4 +1,3 @@
-, PlainSongSheetDataimport { HighqualitySheetData } from "@/types/songSheet";
 <script lang='ts' setup>
 import { 
     CrownOutlined,
@@ -29,11 +28,12 @@ import { handleTags } from "@/utils";
 import sheetSongCard from "@/components/sheetSongCard.vue";
 import { useRouter } from "vue-router";
 import { HighqualitySheetData, PlainSongSheetData } from "@/types/songSheet";
+import lazyLoading from "@/components/lazyLoading.vue";
+import Loading from "@/components/loading.vue";
 
 const store = useStore();
 const router = useRouter();
 const songSheetData = store.state.songSheet;
-const observer = ref<HTMLDivElement>();
 const playlists = ref<SongSheetData[]>([]);
 const cat = ref(songSheetData.tagMame);
 const hotTags = ref<Tags[]>([]);
@@ -42,17 +42,18 @@ const all = ref<Tag>({} as Tag)                                                 
 const categories = ref<string[]>([]);
 const showTagList = ref(false);
 const showPagination = ref(false);
+const loading = ref(true);
 const total = ref(0);
 const current = ref(1);
 const tagList = ref<HTMLDivElement | null>(null);
 const highqualityData = ref<SongSheetData>();
 
-let lastTime = -1;
 let limit = 20;
 let offset = 0;
 
 const selectTag = (tag: Tag | Tags) => {
     cat.value = tag.name;
+    showTagList.value = false;
     store.commit('songSheet/tagMame', cat.value);
 };
 
@@ -62,13 +63,10 @@ const selectTag = (tag: Tag | Tags) => {
 const topPlaylistHighquality = async (cat: string) => {
     const {
         code,
-        lasttime,
         playlists: playList,
-        total,
-    } = await getTopPlaylistHighquality(cat) as HighqualitySheetData;
+    } = await getTopPlaylistHighquality(cat, 1) as HighqualitySheetData;
     if (code === 200) {
         highqualityData.value = playList[0];
-        lastTime = lasttime;
     }
 };
 
@@ -94,9 +92,26 @@ const topPlaylist = async (cat: string, change = false) => {
  * 页数改变
  */
 const changePage = async (page: number, pageSize: number) => {
+    loading.value = true;
     showPagination.value = false;
     offset = (page - 1) * pageSize;
     await topPlaylist(cat.value, true);
+    loading.value = false;
+};
+
+const observer = (el: HTMLDivElement) => {
+    const option = {
+        rootMargin: "0px 0px 0px 0px",
+        threshold: 0,
+    };
+    const ob = new IntersectionObserver((entrys) => {
+        if (playlists.value.length >= 100 && el) {
+            showPagination.value = true;
+            return;
+        }
+        if (entrys[0].intersectionRatio > 0) topPlaylist(cat.value);
+    }, option);
+    ob.observe(el);
 };
 
 onMounted(async () => {
@@ -111,8 +126,7 @@ onMounted(async () => {
             store.commit('songSheet/hotTag', tags[0]);
             hotTags.value = tags;
         }
-    }
-    
+    }    
     { // 获取分类标签列表
         const {
             code,
@@ -126,25 +140,13 @@ onMounted(async () => {
             all.value = main;
         }
     }
-
-    if (observer.value) {
-        const option = {
-            rootMargin: '0px 0px 0px 0px',
-            threshold: 0,
-        };
-        const ob = new IntersectionObserver((entrys) => {
-            if (playlists.value.length >= 100 && observer.value) {
-                showPagination.value = true;
-                return;
-            }
-            if (entrys[0].intersectionRatio > 0) topPlaylist(cat.value);
-        }, option);
-        ob.observe(observer.value);
-    }
-
+    loading.value = false;
     document.documentElement.addEventListener('click', (e) => {
-        const el = e.target as HTMLElement;
-        if (!el.contains(tagList.value)) showTagList.value = false;
+        const el = e.target as HTMLDivElement;
+        if (!tagList.value || !showTagList.value) return;
+        if (!tagList.value.contains(el)) {
+            showTagList.value = false;
+        }
     });
 });
 
@@ -152,24 +154,26 @@ watch(
     () => cat.value,
     async (nCat: string) => {
         if (!nCat) return;
+        loading.value = true;
         await topPlaylist(nCat, true);
         await topPlaylistHighquality(nCat);
         offset = 0;
+        loading.value = false;
     }
 );
 </script>
 
 <template>
     <div>
-        <div v-if="highqualityData" class="highquality">
-            <div class="highquality-bg base-absolute">
+        <div v-if="highqualityData" class="highquality-main">
+            <div class="highquality-main-bg base-absolute">
                 <img :src="highqualityData.coverImgUrl" width="1100" alt="背景图片" >
             </div>
-            <div class="highquality-detail">
+            <div class="highquality-main-detail">
                 <img :src="highqualityData.coverImgUrl + '?param=140y140'" width="140" height="140" alt="">
-                <div class="highquality-body">
+                <div class="highquality-main-body">
                     <div>
-                        <a-button class="highquality-btn" ghost shape="round" @click="router.push(`/highquality/${cat}`)">
+                        <a-button class="highquality-main-btn" ghost shape="round" @click="router.push(`/highquality/${cat}`)">
                             <template #icon>
                                 <crown-outlined />
                             </template>
@@ -226,11 +230,10 @@ watch(
                         <li 
                             v-for="item in tag"
                             :key="item.name"
-                            class=""
                         >
                             <span 
                                 :class="`cats-name base-pointer ${item.name === cat ? 'cats-active' : ''}`"
-                                @click="selectTag(item)"
+                                @click.prevent="selectTag(item)"
                             > 
                                 {{ item.name }}
                                 <span v-if="item.hot" class="cats-hot" >HOT</span> 
@@ -240,10 +243,12 @@ watch(
                 </div>
             </div>
         </div>
-        <div class="song-sheet-list">
-            <sheetSongCard :songSheet="playlists"></sheetSongCard>
-            <div ref="observer" class="observer"></div>
-        </div>
+        <Loading :loading="loading" height="200px">
+            <div class="song-sheet-list">
+                <sheetSongCard :songSheet="playlists"></sheetSongCard>
+                <lazyLoading @observer="observer"></lazyLoading>
+            </div>
+        </Loading>
         <a-pagination 
             v-if="showPagination"
             v-model:current="current" 
@@ -263,13 +268,9 @@ watch(
     text-align: center;
 }
 
-.observer {
-    width: 100%;
-    height: 1px;
-}
-
-.highquality {
+.highquality-main {
     position: relative;
+    margin-top: 20px;
     width: 1100px;
     height: 170px;
     padding: 15px;
@@ -277,7 +278,7 @@ watch(
     overflow: hidden;
 }
 
-.highquality-bg {
+.highquality-main-bg {
     top: 0;
     left: 0;
     right: 0;
@@ -296,7 +297,7 @@ watch(
     }
 }
 
-.highquality-detail {
+.highquality-main-detail {
     position: relative;
     display: flex;
     gap: 10px;
@@ -307,7 +308,7 @@ watch(
     }
 }
 
-.highquality-body {
+.highquality-main-body {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -318,7 +319,7 @@ watch(
     }
 }
 
-.highquality-btn {
+.highquality-main-btn {
     border: 1px solid rgb(231, 193, 23);
     color: rgb(231, 193, 23);
 

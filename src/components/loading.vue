@@ -19,8 +19,16 @@ const position = {
 
 <template>
     <out-in>
-        <div v-if="loading" class="loading" :style="{ height: height }">
-            <a-spin tip="加载中..." :size="size" :style="position" />
+        <div 
+            v-if="loading" 
+            class="loading" 
+            :style="{ height: height }"
+        >
+            <a-spin 
+                tip="加载中..." 
+                :size="size" 
+                :style="position" 
+            />
         </div>
         <slot v-else></slot>
     </out-in>

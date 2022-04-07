@@ -22,6 +22,16 @@ export interface SongSheet {
     };
 }
 
+export interface RecommentSongSheetData {
+    copywriter: string;
+    id: number;
+    name: string;
+    picUrl: string;
+    playCount: number;
+    trackCount: number;
+    
+}
+
 /* 歌单信息 */
 export interface SongSheetData {
     creator: Creator;

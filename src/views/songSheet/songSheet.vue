@@ -1,7 +1,6 @@
 <script lang='ts' setup>
 import { 
-    useRoute, 
-    useRouter 
+    useRoute
 } from "vue-router";
 import { 
     day, 
@@ -25,38 +24,30 @@ import { useStore } from "@/store";
 import { SongSheetData } from "@/store/types/songSheet";
 import { Response } from "@/types/base";
 import { ref } from "@vue/reactivity";
-import { onMounted } from "@vue/runtime-core";
+import { defineComponent, onMounted, watch } from "@vue/runtime-core";
 import { parseSongSheetInfo } from "@/utils/parseData";
 import { PlayListInfo } from "@/store/types/playList";
 import NavBar from '@/components/navBar/index.vue';
 import Loading from "@/components/loading.vue";
-import OutIn from "@/components/out-in.vue";
 import { RecommendSongsStatic } from "@/types/song";
 import { getUserDetail } from "@/api";
 
-
 const route = useRoute();
-const router = useRouter();
 const store = useStore();
 const ellipsis = ref(true);
 const loading = ref(true);
+const id = ref(+route.params.id);
 const tracks = ref<PlayListInfo[]>([]);
 const songSheetInfo = ref<SongSheetData>();
 const nowDay = day();
-const id = +route.params.id;
-const cacheSongSheets = store.state.playList.cacheSongSheets;
 const list = [
     {
         name: '歌曲列表',
-        path: `/songSheet/${id}`,
-    }, 
-    {
-        name: '收藏者',
-        path: `/songSheet/${id}/collection`,
+        path: `/songSheet/${id.value}`,
     }
 ];
 /**
- * 播放当前列表的音乐
+ * 点击开始播放，播放当前列表的音乐
  */
 const playCurrentList = () => {
     const currentMusic = store.state.currentMusic;
@@ -65,14 +56,8 @@ const playCurrentList = () => {
         return;
     }
     playListSong(tracks.value[0], 0);
-    changePlayList(songSheetInfo.value!.tracks, songSheetInfo.value!.trackCount, id);
+    changePlayList(songSheetInfo.value!.tracks, songSheetInfo.value!.trackCount, id.value);
 };
-
-cacheSongSheets.forEach((songSheet) => {
-    if (songSheet.id === id) {
-        songSheetInfo.value = songSheet.info;
-    }
-});
 
 /* 创建歌单时间 */
 const createTime = (time: number) => {
@@ -84,15 +69,16 @@ const changeTracks = (songs: PlayListInfo[]) => {
     tracks.value.push(...songs);
 };
 
-onMounted(async () => {
-    if (!songSheetInfo.value && id !== -11) {
+const init = async () => {
+    if (id.value !== -11) {
         const {
             code,
             playlist,
-        } = await getPlayListDetail(id) as Response & { playlist: SongSheetData };
-        if (code !== 200 || !playlist) return router.push('/');
-        songSheetInfo.value = parseSongSheetInfo(playlist);
-    } else if (id === -11) {
+        } = await getPlayListDetail(id.value) as Response & { playlist: SongSheetData };
+        if (code === 200 && playlist) {
+            songSheetInfo.value = parseSongSheetInfo(playlist);
+        }
+    } else {
         const { identify, } = await getUserDetail(1) as { identify: { imageDesc: string, imageUrl: string }} ;
         const songsData = getItem('recommend-songs') as RecommendSongsStatic;
         songSheetInfo.value = {
@@ -120,18 +106,28 @@ onMounted(async () => {
     }
     
     const currentList = store.state.playList.currentList;
-    if(currentList.id === id && currentList.songs.length > 20) {
+    // 匹配长度最多的列表
+    if(currentList.id === id.value && currentList.songs.length > 20) {
         tracks.value = currentList.songs;
     } else {
         tracks.value = toPlayList(songSheetInfo.value!.tracks);
     }
+
     loading.value = false;
+};
+
+onMounted(init);
+</script>
+
+<script lang="ts">
+export default defineComponent({
+    name: 'songSheet',
 });
 </script>
 
 <template>
     <div>
-        <Loading :loading="loading">
+        <Loading :loading="loading" :top="'200px'">
             <div v-if="songSheetInfo">
                 <div class="song-sheet-info">
                     <img 
@@ -199,18 +195,14 @@ onMounted(async () => {
             </div>
         </Loading>
         <router-view v-if="songSheetInfo && !loading" v-slot="{ Component }">
-            <out-in>
-                <keep-alive>
-                    <component
-                        :is="Component"
-                        :bigList="true"
-                        :id="id"
-                        :tracks="tracks"
-                        :trackCount="songSheetInfo.trackCount"
-                        @changeTracks="changeTracks"
-                    />
-                </keep-alive>
-            </out-in>
+            <component
+                :is="Component"
+                :bigList="true"
+                :id="id"
+                :tracks="tracks"
+                :trackCount="songSheetInfo.trackCount"
+                @changeTracks="changeTracks"
+            />
         </router-view>
     </div>
 </template>

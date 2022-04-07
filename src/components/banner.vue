@@ -196,7 +196,7 @@ onDeactivated(() => {
     border-radius: 50%;
     cursor: pointer;
     transform: translateY(-100%);
-    z-index: 100;
+    z-index: 20;
 }
 
 .carousel-arrow-left {
@@ -228,11 +228,5 @@ onDeactivated(() => {
 
 .carousel-spot-active {
     background-color: #1890ff;
-}
-</style>
-
-<style lang="less">
-@media screen and (max-width: 1360px) {
-    
 }
 </style>

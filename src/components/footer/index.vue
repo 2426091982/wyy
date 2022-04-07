@@ -22,14 +22,17 @@ import {
     ref, 
     watch 
 } from 'vue';
-import { getLyric } from '@/api';
-import { Lyic } from '@/types/lyric';
+import { 
+    playListSong, 
+    setCurrentTime, 
+    setProgress 
+} from '@/utils/song';
 import { useStore } from '@/store';
-import { playListSong } from '@/utils/song';
 import OutIn from '@/components/out-in.vue';
 import PlayBut from '@/components/playBut.vue';
 import Icon from '@/components/icon.vue';
 import PlayList from '@/components/playList/playList.vue';
+import { setKey, timeUpdate } from '@/utils/lyric';
 
 const main = ref();
 const sound = ref(100);
@@ -44,10 +47,10 @@ const trunk = ref<HTMLDivElement>();
 const store = useStore();
 const currentMusic = store.state.currentMusic;
 const playList = store.state.playList;
+const lyricState = store.state.lyric;
 
 let prevI = 0;
 let totalT = 0;
-let currentT = 0;
 let wait = false;
 let isMute = false;
 let timer: NodeJS.Timeout;
@@ -141,15 +144,6 @@ const mute = () => {
     changeSound(sound.value);
 };
 
-/**
- * 设置当前进度条的位置
- * @param progress 位置（百分比）
- */
-const setProgress = (progress: number | string) => {
-    if (!line.value || !spot.value) return;
-    line.value.style.width = `${progress}%`;
-    spot.value.style.left = `${progress}%`;
-};
 
 /**
  * 开始（暂停）播放
@@ -158,17 +152,6 @@ const playSong = () => {
     if (!currentMusic.url) return;
     if (!currentMusic.play) handleStartPlay();
     store.commit('currentMusic/playSong', !currentMusic.play);
-};
-
-/**
- * 设置歌曲当前播放时间
- */
-const currentTime = () => {
-    if(!audio.value || !line.value || !spot.value) return;
-    currentT = Math.ceil(audio.value.currentTime);
-    store.commit('currentMusic/changeCurrentTime', handlePlayTime(Math.min(currentT, totalT)));
-    const progress = (currentT / totalT * 100 || 0);
-    setProgress(progress);
 };
 
 /**
@@ -219,18 +202,21 @@ const handlePlay = <T>(val: T) => {
     /* 开始播放和暂停播放 */
     const handle = async () => {
         if(audio.value == undefined || wait) return;
-        // 如果音频没有加载回来那么久会走这里
-        if (!audio.value.duration) {
-            wait = true;
-            const waitFn = () => {
-                handle();
-                wait = false;
-                audio.value!.removeEventListener('canplay', waitFn);
-            };
-            audio.value.addEventListener('canplay', waitFn);
-        } else if (typeof val === 'string') {
-            await audio.value.play();
-            gradually(true);
+        if (typeof val === 'string') {
+            // 如果音频没有加载回来那么久会走这里
+            if (!audio.value.duration) {
+                wait = true;
+                const waitFn = () => {
+                    handle();
+                    wait = false;
+                    audio.value!.removeEventListener('canplay', waitFn);
+                };
+                audio.value.addEventListener('canplay', waitFn);
+            } else {
+                await audio.value.play();
+                gradually(true);
+            }
+            lyricState.key ? store.commit('lyric/setKey', 0) : null;
         } else if (val) {
             await audio.value.play();
             gradually(true);
@@ -248,19 +234,12 @@ const handlePlay = <T>(val: T) => {
  */
 const watchUrl = async (newUrl: string) => {
     handlePlay(newUrl);
-    if (showLyric.value) {
-        const {
-            code, 
-            lrc,
-        } = await getLyric(currentMusic.id) as Lyic;
-        if (code === 200) {
-            lyric.value = lrc.lyric;
-        } else {
-            lyric.value = '获取歌词失败！';
-        }
-    }
 };
 
+/**
+ * 当声音UI值发生改变音频声音跟随改变
+ * @param value 
+ */
 const changeSound = (value: number) => {
     if (!audio.value) return;
     audio.value.volume = value / 100;
@@ -290,6 +269,7 @@ const clearList = () => {
     setProgress(0);
 };
 
+// 上一首
 const prevSong = () => {
     if (key === 0) {
         playStrategy[1](false);
@@ -298,6 +278,7 @@ const prevSong = () => {
     }
 };
 
+// 下一首
 const nextSong = () => {
     if (key === 0) {
         playStrategy[1](true);
@@ -317,8 +298,8 @@ onMounted(() => {
     /* 点击播放 */
     let play = () => {
         clearInterval(time);
-        currentTime();
-        time = setInterval(currentTime, 1000);
+        setCurrentTime();
+        time = setInterval(setCurrentTime, 1000);
     };
     /* 可以播放 */
     let canplay = () => {
@@ -357,15 +338,15 @@ onMounted(() => {
      * 按下歌曲进度条小圆点定位记录起始位置
      */
     let mouseDown = (e: MouseEvent) => {
-        stop(e);
         clearInterval(time);
+        // 禁止传播
+        stop(e);
         startX = e.pageX;
         el = e.target as HTMLSpanElement;
         startL = el.offsetLeft;
         el.style.display = 'block';
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         width = trunk.value!.clientWidth;
-        store.commit('currentMusic/playSong', false);
         document.addEventListener('mousemove', mouseMove);
         document.addEventListener('mouseup', mouseUp);
     };
@@ -379,27 +360,32 @@ onMounted(() => {
         let left = curX / width * 100;
         left = left >= 100 ? 100 : left <= 0 ? 0 : left;
         progress = totalT * (left / 100);
-        audio.value.currentTime = Math.min(progress ?? audio.value.currentTime, totalT);
         setProgress(left);
-        // 更新当前时间
-        currentTime();
     };
     /**
      * 松开歌曲进度条小圆点定位到歌曲时间
      */
-    let mouseUp = () => {
-        if (!audio.value) return;
+    let mouseUp = (e: MouseEvent) => {
+        document.removeEventListener('mousemove', mouseMove);
+        document.removeEventListener('mouseup', mouseUp);
+        // 如果松开的值等于开始值那么不做任何处理
+        if (!audio.value || e.pageX === startX) return;
         // 播放音乐
         clearInterval(time);
+        // 更新当前时间
+        audio.value.currentTime = Math.min(progress ?? audio.value.currentTime, totalT);
+        setCurrentTime();
+        // 当前时间不等于结束时间，继续更新当前时间的值
         if (audio.value.currentTime !== totalT) {
-            playSong();
-            time = setInterval(currentTime, 1000);
+            time = setInterval(setCurrentTime, 1000);
         } else {
             audio.value.currentTime = audio.value.duration;
         }
-        document.removeEventListener('mousemove', mouseMove);
-        document.removeEventListener('mouseup', mouseUp);
         el.style.display = '';
+        // 歌词跟随
+        if (document.querySelector('.lyric-list')) {
+            setKey(audio.value, true); 
+        }
     };
     /**
      * 随机点击进度条，定位到点击的位置的歌曲时间
@@ -412,19 +398,24 @@ onMounted(() => {
         progress = +progress.toFixed(2);
         setProgress(progress);
         audio.value.currentTime = totalT * (progress / 100); 
-        currentTime();
+        setCurrentTime();
+        // 歌词跟随
+        if (document.querySelector('.lyric-list')) {
+            setKey(audio.value, true); 
+        }
     };
     // 获取当前audio的音量赋值到音量条上
     sound.value = audio.value.volume * 100;
     main.value = document.querySelector('main');
     // 绑定事件
     document.addEventListener('keydown', throttle(keydown, 500));
-    spot.value.addEventListener('mousedown', throttle(mouseDown, 500));
+    spot.value.addEventListener('mousedown', mouseDown);
     trunk.value.addEventListener('mousedown', throttle(atWillClick));
     audio.value.addEventListener('canplay', canplay);
     audio.value.addEventListener('ended', ended);
     audio.value.addEventListener('play', play);
     audio.value.addEventListener('pause', () => clearInterval(time));
+    audio.value.addEventListener('timeupdate', timeUpdate);
 });
 
 watch(() => currentMusic.play, handlePlay);
@@ -434,27 +425,47 @@ watch(() => currentMusic.url, watchUrl);
 <template>
     <div :class="`song-detail-container ${!currentMusic.url ? 'invalid' : ''}`">
         <div class="song-detail">
-            <img :src="currentMusic.pic" width="60" height="60" alt="">
+            <img 
+                :src="currentMusic.pic" 
+                width="60" 
+                height="60" 
+                @click="$router.push('/lyric')"
+            >
             <div class="song-info">
                 <p>{{ currentMusic.name }}</p>
                 <p>{{ currentMusic.artists }}</p>
             </div>
             <div class="song-like-but">
-                <OutIn>
-                    <heart-outlined v-if="!currentMusic.likes" class="song-icon-like" @click="currentMusic.likes = true" />
-                    <heart-filled v-else class="song-icon-like" style="color: red" @click="currentMusic.likes = false" />
-                </OutIn>
+                <heart-outlined 
+                    v-if="!currentMusic.likes" 
+                    class="song-icon-like" 
+                    @click="currentMusic.likes = true" 
+                />
+                <heart-filled 
+                    v-else 
+                    class="song-icon-like" 
+                    style="color: red" 
+                    @click="currentMusic.likes = false" 
+                />
             </div>
         </div>
     </div>
     <div :class="`song-control ${!currentMusic.url ? 'unable-play' : ''}`">
         <div class="song-control-item  showLatelyList">
             <div class="play-mode base-pointer">
-                <Icon class="control-but" :type="modle" size="16" @click="switchPlayModle"></Icon>
+                <Icon 
+                    class="control-but" 
+                    :type="modle" 
+                    size="16" 
+                    @click="switchPlayModle"
+                ></Icon>
             </div>
             <step-backward-outlined class="base-size20px control-but" @click="prevSong" />
             <div class="play">
-                <PlayBut :play="currentMusic.play" @click="playSong"></PlayBut>
+                <PlayBut 
+                    :play="currentMusic.play" 
+                    @click="playSong"
+                ></PlayBut>
             </div>
             <step-forward-outlined class="base-size20px control-but" @click="nextSong" /> 
             <div :class="showLyric ? 'show-lyric' : ''">
@@ -464,8 +475,16 @@ watch(() => currentMusic.url, watchUrl);
         <div class="progress">
             <span class="progress-time">{{ currentMusic.currentTime }}</span>
             <div ref="trunk" class="progress-line">
-                <div ref="line" class="progress-play-line">
-                    <span ref="spot" class="spot"></span>
+                <div 
+                    ref="line"
+                    id="progress-play-line" 
+                    class="progress-play-line"
+                >
+                    <span 
+                        ref="spot" 
+                        id="spot"
+                        class="spot"
+                    ></span>
                 </div>
             </div>
             <span class="progress-time">{{ currentMusic.totalTime }}</span>
@@ -531,6 +550,7 @@ watch(() => currentMusic.url, watchUrl);
     </a-drawer>
     <audio 
         ref="audio" 
+        id="audio"
         preload="auto"
         :src="currentMusic.url" 
         controls
