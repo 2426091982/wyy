@@ -32,15 +32,15 @@ import {
     parseArtists,
     parseDate 
 } from '@/utils';
+import { CaretRightOutlined } from '@ant-design/icons-vue';
 import { useStore } from '@/store';
 import { useRoute } from "vue-router";
 import { SongData } from "@/types/song";
 import { CurrentMusicState } from '@/store/types/currentMusic';
 import Loading from '@/components/loading.vue';
 import Comment from '@/components/comment/comment.vue';
-import PlayBut from '@/components/playBut.vue';
-import { changePlayList } from '@/utils/song';
 import { RecommendSongsData } from '@/store/types/recommendSongs';
+import { changePlayList } from '@/utils/song';
 
 type TData = { 
     events: DyismaData['events'] | null,
@@ -145,6 +145,7 @@ const play = async (events: UserEvents[] | null, key: number) => {
         info.id = song.id;
         info.name = song.name;
         info.pic = song.img80x80;
+        
         info.artists = parseArtists(song.artists);
         info.likes = false; // 去喜欢的音乐列表中匹配
         store.commit('currentMusic/changeState', info);
@@ -166,7 +167,7 @@ const play = async (events: UserEvents[] | null, key: number) => {
             item.play = false;
         }
     });
-    changePlayList(tracks, tracks.length);
+    changePlayList(tracks, tracks.length, -1);
 };
 
 // 点赞或取消点赞
@@ -241,7 +242,7 @@ const updateCData = (source: UserEvents, cData: CommentInfo) => {
                     <p>{{ event.json.msg }}</p>
                     <div class="share-song showLatelyList base-pointer" @click="play(data.events, id)">
                         <div style="position: relative">
-                            <play-but :play="(event.play || currentMusic.id === event.id) && currentMusic.play"></play-but>
+                            <caret-right-outlined class="play-but"/>
                             <img :src="event.json.song.img80x80" width="40" height="40" alt="音乐">
                         </div>
                         <div class="share-song-detail">

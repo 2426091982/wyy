@@ -69,13 +69,14 @@ export const checkSong = async (id: number) => {
 export const toPlayList = (songs: RecommendSongsData[]) => {
     const playList: PlayListInfo[] = [];
     songs.forEach(((track) => {
-        const al = track.al;
+        const pic = track.al ? track.al.picUrl : track.pic;
+        const artists = !track.ar ?track.name : parseArtists(track.ar);
         playList.push({
-            artists: parseArtists(track.ar),
+            artists,
             id: track.id,
             likes: false,
             name: track.name,
-            pic: al.picUrl,
+            pic,
             play: true,
             playTime: 0,
             totalTime: handlePlayTime(track.dt / 1000),
@@ -113,7 +114,7 @@ export const playListSong = async (songInfo: PlayListInfo, index: number) => {
  */
 export const changePlayList = (tracks: RecommendSongsData[], trackCount: number, id = -1) => {
     store.commit('playList/changePlayList', { 
-        songs: id !== -1 ? toPlayList(tracks) : tracks, 
+        songs: id === -1 ? tracks : toPlayList(tracks), 
         size: trackCount,
         id,
     });
@@ -146,7 +147,8 @@ export const parseLryic = (lyric: string): LyricData[] => {
 };
 
 export const setCurrentTime = (time?: number) => {
-    const audio = document.querySelector('#audio') as HTMLAudioElement;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const audio = store.state.audio!;
     if(!audio || !audio.duration) return;
     const totalT = audio.duration;
     if (time != null)  {

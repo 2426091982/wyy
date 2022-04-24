@@ -18,6 +18,7 @@ type Options = {
         isLlogin: boolean,
         showLoginD: boolean,
         onLine: boolean,
+        audio: HTMLAudioElement | null,
     },
     mutations: {
         changeShowLoginD(state: State,  value: boolean): void,
@@ -37,9 +38,9 @@ type Options = {
 };
 
 type State = {
-    isLlogin: boolean;
-    showLoginD: boolean;
-    onLine: boolean;
+    // isLlogin: boolean;
+    // showLoginD: boolean;
+    // onLine: boolean;
     user: UserState;
     currentMusic: CurrentMusicState;
     playList: PlayListState;
@@ -49,7 +50,7 @@ type State = {
     recommendSongs: RecommendSongs['state'];
     search: Search['state'];
     lyric: Lyric['state'];
-};
+} & Options['state'];
 
 declare module '@vue/runtime-core' {
     interface ComponentCustomProperties {

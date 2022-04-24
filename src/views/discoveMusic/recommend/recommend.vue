@@ -68,6 +68,7 @@ const playRSong = async ({song, id, picUrl, }: NewSongData) => {
 };
 
 onMounted(async () => {
+    const isLogin = store.state.isLlogin;
     {   // 轮播图
         let { 
             code, 
@@ -81,7 +82,7 @@ onMounted(async () => {
         let {
             code,
             result,
-        } =  await getRecommendSongSheet() as Response & { result: RecommentSongSheetData[] };
+        } =  await getRecommendSongSheet(isLogin ? 9 : 10) as Response & { result: RecommentSongSheetData[] };
         if (code === 200) {
             const recommendSongList: SongSheetData[] = [];
             result.forEach(async (songSheet) => {
@@ -124,7 +125,7 @@ onMounted(async () => {
             <Banner :imgList="bannerData"></Banner>
             <Title title="推荐歌单" path="/discoveMusic/songSheet"></Title>
             <div class="song-sheet-list">
-                <sheetSongCard dayRecommend ></sheetSongCard>
+                <sheetSongCard v-if="store.state.isLlogin" dayRecommend ></sheetSongCard>
                 <sheetSongCard :songSheet="songSheet" ></sheetSongCard>
             </div>
             <Title title="独家放送" path="/discoveMusic/"></Title>

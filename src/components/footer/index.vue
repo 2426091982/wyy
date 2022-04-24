@@ -39,15 +39,14 @@ const sound = ref(100);
 const showLatelyList = ref(false);
 const showLyric = ref(false);
 const startPlay = ref(false);
-const lyric = ref('网抑云音乐');
 const line = ref<HTMLDivElement>();
 const spot = ref<HTMLSpanElement>();
-const audio = ref<HTMLAudioElement>();
 const trunk = ref<HTMLDivElement>();
 const store = useStore();
 const currentMusic = store.state.currentMusic;
 const playList = store.state.playList;
 const lyricState = store.state.lyric;
+const audio = store.state.audio = document.createElement('audio');
 
 let prevI = 0;
 let totalT = 0;
@@ -158,8 +157,7 @@ const playSong = () => {
  * 设置歌曲总时间
  */
 const totalTime = () => {
-    if(!audio.value) return;
-    totalT = Math.floor(audio.value.duration);
+    totalT = Math.floor(audio.duration);
     store.commit('currentMusic/changeTotalTime', handlePlayTime(totalT));
 };
 
@@ -170,24 +168,24 @@ const totalTime = () => {
 const gradually = (play: boolean) => {
     return new Promise((resolve) => {
         /* eslint-disable @typescript-eslint/no-non-null-assertion */
-        const oldVol = audio.value!.volume;
-        audio.value!.volume = play ? 0 : oldVol;
+        const oldVol = audio.volume;
+        audio.volume = play ? 0 : oldVol;
         clearInterval(timeout);
         const fn = () => {
-            let newVal = audio.value!.volume;
+            let newVal = audio.volume;
             if (play) {
                 newVal = +Math.min(oldVol, newVal += 0.05).toFixed(2);
-                audio.value!.volume = newVal;
+                audio.volume = newVal;
             } else {
                 newVal = +Math.max(0, newVal -= 0.05).toFixed(2);
-                audio.value!.volume = newVal;
+                audio.volume = newVal;
             }
             if (
-                newVal === oldVol && play
-                || newVal === 0 && !play
+                (newVal === oldVol && play)
+                || (newVal === 0 && !play)
             ) {
                 clearInterval(timeout);
-                resolve(audio.value!.volume = 1);
+                resolve(audio.volume = 1);
             }
         };
         timeout = setInterval(fn, 50);
@@ -201,39 +199,35 @@ const gradually = (play: boolean) => {
 const handlePlay = <T>(val: T) => {
     /* 开始播放和暂停播放 */
     const handle = async () => {
-        if(audio.value == undefined || wait) return;
+        if(audio == undefined || wait) return;
         if (typeof val === 'string') {
             // 如果音频没有加载回来那么久会走这里
-            if (!audio.value.duration) {
+            if (!audio.duration) {
                 wait = true;
                 const waitFn = () => {
                     handle();
                     wait = false;
-                    audio.value!.removeEventListener('canplay', waitFn);
+                    audio.removeEventListener('canplay', waitFn);
                 };
-                audio.value.addEventListener('canplay', waitFn);
+                audio.addEventListener('canplay', waitFn);
             } else {
-                await audio.value.play();
+                await audio.play();
                 gradually(true);
             }
             lyricState.key ? store.commit('lyric/setKey', 0) : null;
         } else if (val) {
-            await audio.value.play();
+            await audio.play();
             gradually(true);
         } else {
             await gradually(false);
-            audio.value.pause();
+            audio.pause();
         }
     };
     nextTick(handle);
 };
 
-/**
- * 音乐地址发生改变播最新音乐，并且显示歌词的话就会加载
- * @param newUrl 最新的音乐地址
- */
-const watchUrl = async (newUrl: string) => {
-    handlePlay(newUrl);
+const handleURL = (url: string) => {
+    audio.src = url;
 };
 
 /**
@@ -241,8 +235,7 @@ const watchUrl = async (newUrl: string) => {
  * @param value 
  */
 const changeSound = (value: number) => {
-    if (!audio.value) return;
-    audio.value.volume = value / 100;
+    audio.volume = value / 100;
 };
 
 /* 对点击其他地方进行关闭的处理 */
@@ -288,7 +281,7 @@ const nextSong = () => {
 };
 
 onMounted(() => {
-    if (!audio.value || !spot.value || !trunk.value) return;
+    if (!spot.value || !trunk.value) return;
     let startL: number;
     let startX: number;
     let progress: number;
@@ -354,7 +347,6 @@ onMounted(() => {
      * 拖动歌曲进度条小圆点定位到歌曲时间
      */
     let mouseMove = (e: MouseEvent) => {
-        if (!audio.value) return;
         // 定位进度条
         let curX = e.pageX - startX + startL;
         let left = curX / width * 100;
@@ -369,57 +361,57 @@ onMounted(() => {
         document.removeEventListener('mousemove', mouseMove);
         document.removeEventListener('mouseup', mouseUp);
         // 如果松开的值等于开始值那么不做任何处理
-        if (!audio.value || e.pageX === startX) return;
+        if (e.pageX === startX) return;
         // 播放音乐
         clearInterval(time);
         // 更新当前时间
-        audio.value.currentTime = Math.min(progress ?? audio.value.currentTime, totalT);
+        audio.currentTime = Math.min(progress ?? audio.currentTime, totalT);
         setCurrentTime();
         // 当前时间不等于结束时间，继续更新当前时间的值
-        if (audio.value.currentTime !== totalT) {
+        if (audio.currentTime !== totalT) {
             time = setInterval(setCurrentTime, 1000);
         } else {
-            audio.value.currentTime = audio.value.duration;
+            audio.currentTime = audio.duration;
         }
         el.style.display = '';
         // 歌词跟随
         if (document.querySelector('.lyric-list')) {
-            setKey(audio.value, true); 
+            setKey(audio, true); 
         }
     };
     /**
      * 随机点击进度条，定位到点击的位置的歌曲时间
      */
     let atWillClick = (e: MouseEvent) => {
-        if (!trunk.value || !audio.value) return;
+        if (!trunk.value) return;
         let left = trunk.value.offsetLeft;
         let width =  trunk.value.clientWidth;
         let progress = ((e.pageX - left) / width * 100);
         progress = +progress.toFixed(2);
         setProgress(progress);
-        audio.value.currentTime = totalT * (progress / 100); 
+        audio.currentTime = totalT * (progress / 100); 
         setCurrentTime();
         // 歌词跟随
         if (document.querySelector('.lyric-list')) {
-            setKey(audio.value, true); 
+            setKey(audio, true); 
         }
     };
     // 获取当前audio的音量赋值到音量条上
-    sound.value = audio.value.volume * 100;
+    sound.value = audio.volume * 100;
     main.value = document.querySelector('main');
     // 绑定事件
     document.addEventListener('keydown', throttle(keydown, 500));
     spot.value.addEventListener('mousedown', mouseDown);
     trunk.value.addEventListener('mousedown', throttle(atWillClick));
-    audio.value.addEventListener('canplay', canplay);
-    audio.value.addEventListener('ended', ended);
-    audio.value.addEventListener('play', play);
-    audio.value.addEventListener('pause', () => clearInterval(time));
-    audio.value.addEventListener('timeupdate', timeUpdate);
+    audio.addEventListener('canplay', canplay);
+    audio.addEventListener('ended', ended);
+    audio.addEventListener('play', play);
+    audio.addEventListener('pause', () => clearInterval(time));
+    audio.addEventListener('timeupdate', timeUpdate);
 });
 
 watch(() => currentMusic.play, handlePlay);
-watch(() => currentMusic.url, watchUrl);
+watch(() => currentMusic.url, handleURL);
 </script>
 
 <template>
@@ -548,15 +540,6 @@ watch(() => currentMusic.url, watchUrl);
             <PlayList></PlayList>
         </div>
     </a-drawer>
-    <audio 
-        ref="audio" 
-        id="audio"
-        preload="auto"
-        :src="currentMusic.url" 
-        controls
-        autoplay
-        style="display: none"
-    ></audio>
 </template>
 
 <style lang='less'>

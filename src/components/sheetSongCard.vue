@@ -38,13 +38,15 @@ const { dayRecommend, } = defineProps({
 const nowDay = day();
 const store = useStore();
 const recommendSongs = getItem('recommend-songs') as RecommendSongsStatic;
-const rSong = ref<RecommendSongsData[]>(recommendSongs?.songs || []);
+const rSong = ref<RecommendSongsData[]>((recommendSongs?.songs) || []);
 
-if (dayRecommend) {
+
+if (dayRecommend && store.state.isLlogin) {
     onMounted(async () => {
         // 获取每日推荐歌曲
         if (!recommendSongs || recommendSongs.day != nowDay) {
             let { 
+                
                 dailySongs,
             } = await getRecommendSongs() as{ dailySongs: RecommendSongsData[] };
             dailySongs = parseRecommendSongs(dailySongs);

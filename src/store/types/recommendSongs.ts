@@ -26,4 +26,5 @@ export interface RecommendSongsData {
     id: string | number;
     dt: number;
     pop: number;
+    pic: string;
 }

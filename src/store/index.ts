@@ -20,6 +20,7 @@ export const store = createStore({
         isLlogin: false,
         showLoginD: false,
         onLine: navigator.onLine,
+        audio: null,
     },
     mutations: {
         changeIsLogin(state, value) {
