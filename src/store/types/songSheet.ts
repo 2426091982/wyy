@@ -1,21 +1,22 @@
 import { RecommendSongsData } from "./recommendSongs";
 
 type state =  SongSheet['state'];
+export type listType = { id: number, list: SongSheetData };
 
 export interface SongSheet {
     namespaced: true;
     state: {
-        tagMame: string;
+        tagName: string;
         tagId: number;
         tag: Tags[];
         hotTag: Tags[];
-        list: SongSheetData[]; // 所有歌单信息
+        list: listType[]; // 所有歌单信息
         // songSheetInfo 单项歌单详细信息
     };
     mutations: {
-        tagMame: (state: state, name: string) => void;
-        add: (state: state, value: state['list']) => void;
-        change:(state: state, value: state['list']) => void;
+        tagName: (state: state, name: string) => void;
+        add: (state: state, value: listType) => void;
+        change:(state: state, value: listType) => void;
         tagId: (state: state, id: number) => void;
         tag: (state: state, tag: Tags[]) => void;
         hotTag: (state: state, tag: Tags[]) => void;

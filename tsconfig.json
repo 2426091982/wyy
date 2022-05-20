@@ -10,7 +10,7 @@
         "resolveJsonModule": true,
         "esModuleInterop": true,
         "lib": ["esnext", "dom"],
-        "isolatedModules": true,
+        "isolatedModules": false,
         "baseUrl": ".",
         "paths": {
             "@/*": ["src/*"], 
@@ -22,6 +22,7 @@
         "src/**/*.d.ts", 
         "src/**/*.tsx", 
         "src/**/*.vue"
-, "index.d.ts"    ],
+        , "index.d.ts"    
+    ],
     "exclude": ["node_modules"]
 }

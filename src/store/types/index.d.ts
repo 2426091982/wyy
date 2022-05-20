@@ -15,14 +15,10 @@ import { Lyric } from './lyric';
 // RootStore
 type Options = {
     state: {
-        isLlogin: boolean,
+        isLogin: boolean,
         showLoginD: boolean,
         onLine: boolean,
         audio: HTMLAudioElement | null,
-    },
-    mutations: {
-        changeShowLoginD(state: State,  value: boolean): void,
-        changeIsLogin(state: State, value: boolean): void,
     },
     modules: {
         user: User;
@@ -38,7 +34,7 @@ type Options = {
 };
 
 type State = {
-    // isLlogin: boolean;
+    // isLogin: boolean;
     // showLoginD: boolean;
     // onLine: boolean;
     user: UserState;

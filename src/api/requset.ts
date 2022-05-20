@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { store } from '@/store';
 import { now } from '@/utils';
 import { message } from 'ant-design-vue';
@@ -25,7 +24,8 @@ export const qs = {
     },
     parse(str: string) {
         const obj: {[key: string]: string} = {};
-        str.replace(/([0-9a-zA-Z]+)=([0-9a-zA-Z]+)/g, (_, key:string, value: string) => obj[key] = value);
+        const reg = /([0-9a-zA-Z]+)=([0-9a-zA-Z]+)/g;
+        str.replace(reg, (_, key:string, value: string) => obj[key] = value);
         return obj;
     },
 };
@@ -50,31 +50,44 @@ class Request {
         method: string, 
         body: FormData | null = null
     ) {
-        
         if (!this.requestInterceptor()) return Promise.resolve({}); // 请求前的拦截
+        let timer: NodeJS.Timeout;
         return new Promise((resolve, reject) => {
+            // 请求中止控制器
+            const abortController = new AbortController();
             fetch(url, {
                 ...this.config,
                 method,
                 body: body,
+                signal: abortController.signal,
             }).then((response) => {
+                clearTimeout(timer);
                 const res = response.json().then(this.responseInterceptor);
                 resolve(res);
-            }).catch(reject);
+            }).catch(() => console.log('请求超时'));
+            timer = setTimeout(() => {
+                clearTimeout(timer);
+                this.abort(abortController);
+            }, 10000);
         });
     }
 
-    get(path: string, query?: object, time = false) {
+    get<T>(path: string, query?: object, time = false): Promise<T> {
         let url = `${this.baseUrl}${path}`;
         time && query ? query['time'] = now() : null;
         url = query ? `${ask(url, query)}` : url;
-        return this.send(url, 'get');
+        return this.send(url, 'get') as unknown as Promise<T>;
     }
 
     post(path: string, body: any, time = false) {
         const url = `${this.baseUrl}${path}`;
         time ? body.time = now() : null;
         return this.send(url, 'post', objToFormData(body));
+    }
+
+    abort(abortController: AbortController) { // 中止请求
+        abortController.abort();
+        message.warn('请求超时，请稍后再试');
     }
 
     responseInterceptor(response: any) {

@@ -6,7 +6,8 @@ export interface LyricSourceData {
     lrc: {
         lyric: string;
         version: number;
-    }
+    },
+    needDesc: true | undefined
 }
 
 export interface LyricData {

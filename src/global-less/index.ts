@@ -3,7 +3,6 @@ const fileRegex = /\.(less)$/;
 export default function importGlobalLess() {
     return {
         name: 'globalLess',
-
         transform(src: string, id: string) {
             if (fileRegex.test(id)) {
                 return {

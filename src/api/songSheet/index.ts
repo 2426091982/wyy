@@ -37,3 +37,8 @@ export const getPlaylistCatlist = () => http.get('/playlist/catlist');
  * 获取热门歌单分类标签
  */
 export const getPlaylistHot = () => http.get('/playlist/hot');
+
+/**
+ * 获取每日推荐歌单（需要登录）
+ */
+export const getRecommendResource = <T>(): Promise<T> => http.get('/recommend/resource');

@@ -5,7 +5,7 @@ import {
 } from './utils';
 import { ref } from '@vue/reactivity';
 import { VerticalAlignTopOutlined } from '@ant-design/icons-vue';
-import { onMounted } from '@vue/runtime-core';
+import { onBeforeMount } from '@vue/runtime-core';
 import { message } from 'ant-design-vue';
 import { useRouter } from 'vue-router';
 import { watch } from 'vue';
@@ -23,18 +23,20 @@ let selectedKeys = ref(['-1']);
 
 const target = () => document.querySelector('main');
 
-window.addEventListener('online', () => (store.state.onLine = true));
-window.addEventListener('offline', () => (store.state.onLine = false));
-
 // 验证登录
-onMounted(async () => {
+onBeforeMount(async () => {
     const profile = await getLoginStatus();
     if (profile != null) {
         mountData(profile, '自动登录成功');
+        store.state.isLogin = true;
     } else {
         message.warn('您还没有登录哦~');
+        store.state.isLogin = false;
     }
 });
+
+window.addEventListener('online', () => (store.state.onLine = true));
+window.addEventListener('offline', () => (store.state.onLine = false));
 
 watch( // 观察当前路由的meat有没有name，没有则不会选中导航栏
     () => router.currentRoute.value, 
@@ -57,7 +59,7 @@ watch( // 观察当前路由的meat有没有name，没有则不会选中导航�
                     >
                         <template v-for="route in routes">
                             <a-menu-item 
-                                v-if="route.meta && route.meta?.name !== '我的音乐'" 
+                                v-if="route.meta && route.meta?.name !== '我的音乐' && route.meta.name" 
                                 :key="route.meta?.key"
                             >
                                 <router-link :to="route.path"> {{ route.meta?.name }} </router-link>
@@ -73,7 +75,7 @@ watch( // 观察当前路由的meat有没有name，没有则不会选中导航�
                 <a-layout-content class="main scroll-style">
                     <router-view v-slot="{ Component }">
                         <out-in>
-                            <keep-alive exclude="songSheet" max="10">
+                            <keep-alive exclude="songSheet,lyric" max="1">
                                 <component :is="Component"/>
                             </keep-alive>
                         </out-in>
@@ -217,6 +219,7 @@ ul {
     min-width: 495px;
     overflow-x: hidden;
     overflow-y: scroll;
+    scroll-behavior: smooth; // css3新属性，可以实现锚点平滑滚动
 }
 
 .ellipsis {

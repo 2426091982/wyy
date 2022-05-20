@@ -3,23 +3,23 @@ import { SongSheet } from "../types/songSheet";
 const songSheet: SongSheet = {
     namespaced: true,
     state: {
-        tagMame: sessionStorage.getItem('tag-name') || '全部歌单',
+        tagName: sessionStorage.getItem('tag-name') || '全部歌单',
         tagId: Number(sessionStorage.getItem('tag-id')) || -1,
         tag: [],
         hotTag: [],
         list: [],
     },
     mutations: {
-        tagMame(state, name) {
-            state.tagMame = name;
+        tagName(state, name) {
+            state.tagName = name;
             sessionStorage.setItem('tag-name', name);
         },
-        add(state, list) {
-            state.list.push(...list);
+        add(state, value) {
+            state.list.push(value);
         },
         change(state, list) {
-            state.list = list;
-        },  
+            state.list = [list];
+        },
         tagId(state, id) {
             state.tagId = id;
             sessionStorage.setItem('tag-id', String(id));

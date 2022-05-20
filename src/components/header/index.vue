@@ -3,8 +3,6 @@ import {
     SwapOutlined,
     RightOutlined,
     LogoutOutlined,
-    BellOutlined,
-    SettingOutlined,
     CaretDownOutlined,
     UserOutlined 
 } from '@ant-design/icons-vue';
@@ -99,7 +97,7 @@ const sends = async () => {
         </div>
         <div class="flex-item">
             <a-space :size="20">
-                <a-space v-if="store.state.isLlogin && user.info">
+                <a-space v-if="store.state.isLogin && user.info">
                     <a-dropdown v-model:visible="showDropdown" trigger="click" @visibleChange="sends">
                         <a-space class="base-pointer">
                             <a-avatar>
@@ -174,15 +172,11 @@ const sends = async () => {
                     </a-dropdown>
                 </a-space>
                 <a-space v-else>
-                    <a-avatar @click="$store.commit('changeShowLoginD', true)">
+                    <a-avatar @click="$store.state.showLoginD = true">
                         <template #icon><user-outlined class="base-pointer" /></template>
                     </a-avatar>
-                    <span class="login base-pointer" @click="$store.commit('changeShowLoginD', true)">未登录</span>
+                    <span class="login base-pointer" @click="$store.state.showLoginD = true">未登录</span>
                 </a-space>
-                <a-badge count="5" dot>
-                    <bell-outlined class="header-icon" />
-                </a-badge>
-                <setting-outlined class="header-icon" />
             </a-space>
         </div>
     </a-layout-header>
@@ -213,7 +207,7 @@ const sends = async () => {
         color: #ffffff;
 
         &:last-child {
-            padding-right: 100px;
+            padding-right: 50px;
             justify-content: flex-end;
         }
     }
@@ -275,7 +269,7 @@ const sends = async () => {
         content: '';
         position: absolute;
         top: -4px;
-        left: 30%;
+        right: 10px;
         border-top: 10px solid transparent;
         border-left: 10px solid transparent;
         border-right: 10px solid #ffffff;

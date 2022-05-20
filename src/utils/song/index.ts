@@ -1,6 +1,7 @@
 import { 
     checkMusic, 
     getPlayListAll, 
+    getSongDetail, 
     getSongUrl 
 } from "@/api";
 import { 
@@ -13,7 +14,7 @@ import { RecommendSongsData } from "@/store/types/recommendSongs";
 import { SongData } from "@/types/song";
 import { message } from "ant-design-vue";
 import { LyricData } from "@/types/lyric";
-import { parseRecommendSongs } from "../parseData";
+import { parseRecommendSongs } from "../parseData"
 
 /* 单首音乐信息（含URL） */
 export const songData = async (id: number): Promise<SongData> => {
@@ -53,12 +54,15 @@ export const getSongInfo =  async (id: number, type = 'song') => {
  * @param id 歌曲ID
  * @returns 歌曲是否可用
  */
-export const checkSong = async (id: number) => {
-    const { success, message: mes, } = await checkMusic(id) as { success: boolean, message: string };
-    if (!success) {
-        message.warn(mes);
-    }
-    return success;
+export const checkSong = (id: number) => {
+    return new Promise(async (resolve, reject) => {
+        const { success, message: mes, } = await checkMusic(id) as { success: boolean, message: string };
+        if (!success) {
+            message.warn(mes + '，现为你播放下一首~');
+            return reject(mes);
+        }
+        resolve(success);
+    });
 };
 
 /**
@@ -66,8 +70,11 @@ export const checkSong = async (id: number) => {
  * @param songs 歌曲数据
  * @returns 
  */
-export const toPlayList = (songs: RecommendSongsData[]) => {
+export const toPlayList = (songs: RecommendSongsData[] | RecommendSongsData) => {
     const playList: PlayListInfo[] = [];
+    if (!Array.isArray(songs)) {
+        songs = [songs];
+    }
     songs.forEach(((track) => {
         const pic = track.al ? track.al.picUrl : track.pic;
         const artists = !track.ar ?track.name : parseArtists(track.ar);
@@ -85,25 +92,29 @@ export const toPlayList = (songs: RecommendSongsData[]) => {
     return playList;
 };
 
-
 /**
  * 播放列表的音乐
  * @param songInfo 需要播放音乐的信息
  * @param index 当前音乐的索引
+ * @param list 播放列表
+ * @param id 播放列表ID
+ * @param error 检测是否可用，错误后处理函数
  * @returns 
  */
-export const playListSong = async (songInfo: PlayListInfo, index: number) => {
-    if (!songInfo.url) {
-        const [{ url, }] = await getSongUrl(songInfo.id) as SongData[];
-        songInfo.url = url;
-        if (songInfo.ar) {
-            songInfo.artists = parseArtists(songInfo.ar);
+export const playListSong = async (songInfo: PlayListInfo, index: number, list: any, id: number, error: () => void) => {
+    checkSong(songInfo.id).then(async () => {
+        if (!songInfo.url) {
+            const [{ url, }] = await getSongUrl(songInfo.id) as SongData[];
+            songInfo.url = url;
+            if (songInfo.ar) {
+                songInfo.artists = parseArtists(songInfo.ar);
+            }
         }
-    }
-    
-    store.commit('playList/changeIndex', index);
-    store.commit('currentMusic/changeState', songInfo);
-    store.commit('currentMusic/playSong', true);
+        store.commit('playList/changeIndex', index);
+        changePlayList(list, list.length, id);
+        store.commit('currentMusic/changeState', songInfo);
+        store.commit('currentMusic/playSong', true);
+    }).catch(error);
 };
 
 /**
@@ -112,18 +123,25 @@ export const playListSong = async (songInfo: PlayListInfo, index: number) => {
  * @param trackCount 歌曲总数
  * @param id 歌单ID
  */
-export const changePlayList = (tracks: RecommendSongsData[], trackCount: number, id = -1) => {
+export const changePlayList = (tracks: any, trackCount: number, id = -1) => {
+    if (tracks[0] && typeof (tracks[0].currentTime) !== 'string') {
+        toPlayList(tracks as unknown as RecommendSongsData[])
+    }
     store.commit('playList/changePlayList', { 
-        songs: id === -1 ? tracks : toPlayList(tracks), 
+        songs: tracks, 
         size: trackCount,
         id,
     });
     store.commit('playList/createCurrentList', {
         id,
-        songs: toPlayList(tracks),
+        songs: tracks,
     });
 };
 
+let nullLyric:LyricData[] =[{
+    lyric: '暂无歌词',
+    time: 0,
+}];
 /**
  * 将源数据转换成可识别的歌词数据
  * @param lyric 源歌词数据
@@ -131,19 +149,19 @@ export const changePlayList = (tracks: RecommendSongsData[], trackCount: number,
  */
 export const parseLryic = (lyric: string): LyricData[] => {
     const lyricData: LyricData[] = [];
-    const reg = /(\[(\d{2}):(\d{2})(.\d{2,3})\])(.+)\n/g;
+    const reg = /(\[(\d{2}):(\d{2})(.\d{2,3})?\])(.+)\n/g;
     let data: RegExpExecArray | null;
     while ((data = reg.exec(lyric)) !== null) {
-        const time = 
+        let time = 
             parseInt(data[2]) * 60 + 
             parseInt(data[3]) + 
-            parseFloat(data[4]);
+            (parseFloat(data[4]) || 0);
         lyricData.push({
             time,
             lyric: data[5] || ' ',
         });
     }
-    return lyricData;
+    return lyricData.length ? lyricData : nullLyric;
 };
 
 export const setCurrentTime = (time?: number) => {

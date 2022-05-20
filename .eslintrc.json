@@ -20,6 +20,7 @@
     "parser": "vue-eslint-parser",
     "rules": {
         "no-undef": "off",
+        "no-non-null-assertion": false,
         // 普通变量未使用
         "no-unused-vars": "off",
         // 不能将 const 重新赋值

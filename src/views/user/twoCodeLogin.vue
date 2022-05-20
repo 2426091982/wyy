@@ -68,7 +68,7 @@ onBeforeUnmount(() => {
         <div class="login-modal-header">
             <div class="two-code-login"></div>
             <div class="close-icon">
-                <close-outlined @click="$store.commit('changeShowLoginD', false)"/>
+                <close-outlined @click="$store.state.showLoginD = false"/>
             </div>
         </div>
         <div class="login-modal-body base-text-center">

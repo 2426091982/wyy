@@ -60,6 +60,9 @@ const onSubmit = async () => {
         noAutoLogin();
     }
 };
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') onSubmit();
+});
 // 切换登录模式
 const switchLogin = () => isPhoneLogin.value = !isPhoneLogin.value;
 </script>
@@ -73,7 +76,7 @@ const switchLogin = () => isPhoneLogin.value = !isPhoneLogin.value;
                     <span> 扫码登录更安全 </span>
                 </div>
                 <div class="close-icon">
-                    <close-outlined @click="$store.commit('changeShowLoginD', false)"/>
+                    <close-outlined @click="$store.state.showLoginD = false"/>
                 </div>
             </div>
             <div class="login-modal-body">

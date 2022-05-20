@@ -55,9 +55,9 @@ const handleSub = async () => {
 const init = async () => {
     mvid.value = +route.params.id;
     const { code, url, } = await getMvUrl(mvid.value) as MvUrlData;
-
+    
     if (code !== 200) {
-        router.back();
+        router.go(-1);
         message.error('MV地址异常，请稍后再试！');
         return;
     }
@@ -118,7 +118,11 @@ onMounted(async () => {
 
 watch(
     () => route.params.id,
-    (n) => n ? init() : null
+    (n) => {
+        if (route.path.startsWith('/mv')) {
+            n ? init() : null
+        }
+    }
 );
 </script>
 
@@ -138,6 +142,7 @@ watch(
                     controls
                     disablePictureInPicture="true"
                     controlslist="nodownload"
+                    crossorigin="anonymous"
                     width="100%"
                     height="360"
                 />

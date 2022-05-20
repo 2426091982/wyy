@@ -6,8 +6,8 @@ import {
 import { RecommendSongsData } from "@/store/types/recommendSongs";
 import { markStr } from "@/utils/search";
 import { PropType } from "@vue/runtime-core";
-import { playSong } from "@/utils/sheetSong";
 import { useStore } from "@/store";
+import { playListSong, toPlayList } from "@/utils/song";
 
 defineProps({
     songList: {
@@ -21,15 +21,16 @@ defineProps({
 });
 
 const store = useStore();
-const list = store.state.playList.lately;
+const list = store.state.playList.playList;
 let song = store.state.currentMusic;
-const handlePlay = (id: number, data: RecommendSongsData) => {
-    playSong(id, 'song', [data]);
-    store.commit('playList/changePlayList', {
-        songs: list,
-        id: -1,
-        size: list.length,
-    });
+const handlePlay = (data: RecommendSongsData) => {
+    let songInfo = toPlayList(data);
+    let index = 0;
+    let callBack = () => {
+        playListSong(songInfo[index] || list[index], index, list, -1, callBack);
+        index++;
+    };
+    callBack();
 };
 </script>
 
@@ -45,7 +46,7 @@ const handlePlay = (id: number, data: RecommendSongsData) => {
         v-for="(item, key) in songList"
         :key="key"
         :class="`search-list-content-format ${song.id === item.id ? 'search-play-item' : ''}`"
-        @dblclick="handlePlay(+item.id, item)"
+        @dblclick="handlePlay(item)"
     >
         <span class="order base-absolute ccc">
             {{ key + 1 > 9 ? key + 1 : `0${key+1}` }}

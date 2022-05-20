@@ -16,7 +16,7 @@ import {
     stop, 
     throttle 
 } from '@/utils';
-import { 
+import {
     nextTick, 
     onMounted, 
     ref, 
@@ -25,7 +25,8 @@ import {
 import { 
     playListSong, 
     setCurrentTime, 
-    setProgress 
+    setProgress, 
+songData
 } from '@/utils/song';
 import { useStore } from '@/store';
 import OutIn from '@/components/out-in.vue';
@@ -33,6 +34,9 @@ import PlayBut from '@/components/playBut.vue';
 import Icon from '@/components/icon.vue';
 import PlayList from '@/components/playList/playList.vue';
 import { setKey, timeUpdate } from '@/utils/lyric';
+import { message } from 'ant-design-vue';
+import { getSongUrl } from '@/api';
+import { SongData } from '@/types/song';
 
 const main = ref();
 const sound = ref(100);
@@ -55,7 +59,7 @@ let isMute = false;
 let timer: NodeJS.Timeout;
 let timeout: NodeJS.Timeout;
 let ooldSound = sound.value;
-let key = getItem('play-modle') || 0;
+let key = getItem<number>('play-modle') || 0;
 let playModle = [
     'icon-danquxunhuan',
     'icon-liebiaoxunhuan',
@@ -80,24 +84,42 @@ const playStrategy = {
     1(next: boolean) { // 列表循环
         let { 
             playList: list, 
+            playListId: id,
             index, 
+            total,
         } = playList;
-        if (next) {
-            index < list.length - 1 ? ++index : index = 0;
-        } else {
-            index > 0 ? --index : index = list.length - 1;
+        if (total > 1) {
+            if (next) {
+                index < list.length - 1 ? ++index : index = 0;
+            } else {
+                index > 0 ? --index : index = list.length - 1;
+            }
         }
-        const songInfo = list[index];
         handleStartPlay();
-        playListSong(songInfo, index);
+        let callBack = () => {
+            playListSong(list[index], index, list, id, callBack);
+            if (total > 1) {
+                ++index;
+            } else { // 处理单曲
+                callBack = () => {
+                    message.error('没有可播放歌曲！');
+                }
+            }
+        };
+        callBack();
     },
     2() { // 随机播放
         let {
             playList: list,
+            playListId: id,
             index,
             total,
         } = playList;
+        if (total === 0) {
+            return message.error('没有可播放歌曲！');
+        }
         const randomI: () => number = () =>  {
+            if (total === 1) return 0;
             const i = Math.floor(Math.random() * list.length);
             if (i < 0 || i > total || i === prevI) {
                 return randomI();
@@ -105,9 +127,14 @@ const playStrategy = {
             return i;
         };
         index = randomI();
+        console.log(index);
         prevI = index;
         handleStartPlay();
-        playListSong(list[index], index);
+        const callBack = () => {
+            playListSong(list[index], index, list, id, callBack);
+            ++index;
+        };
+        callBack();
     },
 };
 
@@ -192,6 +219,15 @@ const gradually = (play: boolean) => {
     });
 };
 
+const handleError = async () => {
+    const { url, } = await songData(currentMusic.id);
+    currentMusic.url = url;
+};
+
+const processingError = async () => {
+    audio.play().then(() => gradually(true)).catch(handleError);
+};
+
 /**
  * 开始或暂停播放
  * @param val true播放 false暂停
@@ -199,7 +235,7 @@ const gradually = (play: boolean) => {
 const handlePlay = <T>(val: T) => {
     /* 开始播放和暂停播放 */
     const handle = async () => {
-        if(audio == undefined || wait) return;
+        if(wait) return;
         if (typeof val === 'string') {
             // 如果音频没有加载回来那么久会走这里
             if (!audio.duration) {
@@ -211,13 +247,11 @@ const handlePlay = <T>(val: T) => {
                 };
                 audio.addEventListener('canplay', waitFn);
             } else {
-                await audio.play();
-                gradually(true);
+                processingError();
             }
             lyricState.key ? store.commit('lyric/setKey', 0) : null;
         } else if (val) {
-            await audio.play();
-            gradually(true);
+            processingError();
         } else {
             await gradually(false);
             audio.pause();
@@ -228,6 +262,9 @@ const handlePlay = <T>(val: T) => {
 
 const handleURL = (url: string) => {
     audio.src = url;
+    setProgress(0);
+    currentMusic.currentTime = '00:00';
+    audio.play().catch(handleError);
 };
 
 /**
@@ -396,6 +433,7 @@ onMounted(() => {
             setKey(audio, true); 
         }
     };
+
     // 获取当前audio的音量赋值到音量条上
     sound.value = audio.volume * 100;
     main.value = document.querySelector('main');
@@ -407,6 +445,10 @@ onMounted(() => {
     audio.addEventListener('ended', ended);
     audio.addEventListener('play', play);
     audio.addEventListener('pause', () => clearInterval(time));
+    audio.addEventListener('error', async () => {
+        const [{url}] = await getSongUrl<SongData[]>(currentMusic.id);
+        currentMusic.url = url;
+    });
     audio.addEventListener('timeupdate', timeUpdate);
 });
 
@@ -418,9 +460,7 @@ watch(() => currentMusic.url, handleURL);
     <div :class="`song-detail-container ${!currentMusic.url ? 'invalid' : ''}`">
         <div class="song-detail">
             <img 
-                :src="currentMusic.pic" 
-                width="60" 
-                height="60" 
+                :src="currentMusic.pic + '?param=50y50'" 
                 @click="$router.push('/lyric')"
             >
             <div class="song-info">

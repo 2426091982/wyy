@@ -7,7 +7,8 @@ import {
 } from '@/api/recommend';
 import { 
     onMounted, 
-    ref 
+    ref, 
+    watch
 } from '@vue/runtime-core';
 import { 
     parseBannerData, 
@@ -16,9 +17,7 @@ import {
 import { 
     CaretRightOutlined
 } from '@ant-design/icons-vue';
-import { 
-    parseArtists
-} from '@/utils';
+import { parseArtists } from '@/utils';
 import { songData } from '@/utils/song';
 import { Banners } from '@/types/base';
 import { RecommentSongSheetData, SongSheetData } from '@/store/types/songSheet';
@@ -26,12 +25,12 @@ import { useStore } from '@/store';
 import { PrivateContentData } from '@/store/types/privateContent';
 import { NewSongData } from '@/store/types/newSong';
 import { Response } from '@/types/base';
+import { getRecommendResource, getStatus } from '@/api';
 import Banner from '@/components/banner.vue';
 import Title from '@/components/title.vue';
 import PrivateContentCard from '@/components/privateContentCard.vue';
 import Loading from '@/components/loading.vue';
 import sheetSongCard from '@/components/sheetSongCard.vue';
-import { getPlayListDetail } from '@/api';
 
 const store = useStore();
 const loading = ref(true);
@@ -67,56 +66,83 @@ const playRSong = async ({song, id, picUrl, }: NewSongData) => {
     });
 };
 
-onMounted(async () => {
-    const isLogin = store.state.isLlogin;
-    {   // 轮播图
-        let { 
-            code, 
-            banners, 
-        } = await getBanners() as Response & { banners: Banners };
+const getBannerData = async () => {
+    let { 
+        code, 
+        banners, 
+    } = await getBanners() as Response & { banners: Banners };
+    if (code === 200) {
+        bannerData.value = parseBannerData(banners).splice(0, 8);
+    }
+};
+
+const getRecommendSongsData = async (change = false) => {
+    let limit = 10;
+    let len = 0;
+    await getStatus();
+    if (store.state.isLogin) {
+        limit = 9;
+        let {
+            code,
+            recommend,
+        } = await getRecommendResource<Response & { recommend: SongSheetData[] }>();
+        if (change) songSheet.value = [];
         if (code === 200) {
-            bannerData.value = parseBannerData(banners).splice(0, 8);
+            songSheet.value = recommend.slice(0, 10);
+            len = songSheet.value.length;
         }
     }
-    {   // 推荐歌单
+    if (!store.state.isLogin || len < 9) {
         let {
             code,
             result,
-        } =  await getRecommendSongSheet(isLogin ? 9 : 10) as Response & { result: RecommentSongSheetData[] };
-        if (code === 200) {
-            const recommendSongList: SongSheetData[] = [];
-            result.forEach(async (songSheet) => {
-                const { 
-                    code, 
-                    playlist, 
-                } = await getPlayListDetail(songSheet.id) as Response & { playlist: SongSheetData };
-                if (code !== 200) return;
-                recommendSongList.push(playlist);
-            });
-            songSheet.value = recommendSongList;        
-            store.commit('songSheet/add', recommendSongList);
+        } =  await getRecommendSongSheet(limit - len) as Response & { result: SongSheetData[] };
+        if (code === 200) {  
+            change 
+            ?  songSheet.value = result 
+            : songSheet.value.push(...result);
         }
     }
-    {   // 独家放送
-        let { 
-            code, 
-            result, 
-        } = await getPrivateContent() as Response & { result: PrivateContentData[] };
-        if (code === 200) {
-            privateContent.value = result;
-        }
+}
+
+const getPrivateContentData = async () => {
+    let { 
+        code, 
+        result, 
+    } = await getPrivateContent() as Response & { result: PrivateContentData[] };
+    if (code === 200) {
+        privateContent.value = result;
     }
-    {   // 最新歌曲
-        let { 
-            code, 
-            result, 
-        } = await getNewSong() as Response & { result: NewSongData[] };
-        if (code === 200) {
-            newSong.value = parseNewSongData(result);
-        }
+};
+
+const getNewSongsData = async () => {
+    let { 
+        code, 
+        result, 
+    } = await getNewSong() as Response & { result: NewSongData[] };
+    if (code === 200) {
+        newSong.value = parseNewSongData(result);
     }
+};
+
+onMounted(() => {
+    getBannerData();
+    getRecommendSongsData();
+    getPrivateContentData();
+    getNewSongsData();
     loading.value = false;
 });
+
+watch(
+    () => (store.state.isLogin), 
+    (isLogin) => {
+        if (songSheet.value.length === 10 && isLogin) {
+            getRecommendSongsData();
+        } else if (!isLogin) {
+            getRecommendSongsData(true);
+        }
+    }
+);
 </script>
 
 <template>
@@ -125,7 +151,7 @@ onMounted(async () => {
             <Banner :imgList="bannerData"></Banner>
             <Title title="推荐歌单" path="/discoveMusic/songSheet"></Title>
             <div class="song-sheet-list">
-                <sheetSongCard v-if="store.state.isLlogin" dayRecommend ></sheetSongCard>
+                <sheetSongCard v-if="store.state.isLogin" dayRecommend ></sheetSongCard>
                 <sheetSongCard :songSheet="songSheet" ></sheetSongCard>
             </div>
             <Title title="独家放送" path="/discoveMusic/"></Title>

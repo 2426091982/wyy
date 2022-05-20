@@ -1,20 +1,38 @@
 <script lang='ts' setup>
 import { 
-    playListDetail, 
-    querySong 
-} from "@/utils/sheetSong";
-import { 
     CrownOutlined,
     CaretRightOutlined
 } from '@ant-design/icons-vue';
+import { playListDetail } from "@/utils/sheetSong";
 import { SongSheetData } from "@/store/types/songSheet";
 import { PropType } from "@vue/runtime-core";
+import { playListSong } from '@/utils/song';
+import { getPlayListAll } from '@/api';
+import { PlayListInfo } from '@/store/types/playList';
 
 defineProps({
     list: {
         type: Array as PropType<SongSheetData[]>,
     },
 });
+
+/**
+ * @param id 歌单ID
+ */
+const playSong = async (id: number) => {
+    const {
+        code,
+        songs,    
+    } = await getPlayListAll<{ code: number, songs: PlayListInfo[]}>(id);
+    if (code === 200) {
+        let index = 0;
+        const callBack = () => {
+            playListSong(songs[index], index, songs, id, callBack);
+            index++;
+        };
+        callBack();
+    }
+}
 </script>
 
 <template>
@@ -25,7 +43,7 @@ defineProps({
                     <crown-outlined />
                 </div>
                 <img :src="item.picUrl || item.coverImgUrl + '?param=135y135'">
-                <div class="play-song-but base-absolute showLatelyList" @click="querySong(item.id, 'sheet', $event)">
+                <div class="play-song-but base-absolute showLatelyList" @click="playSong(item.id)">
                     <caret-right-outlined class="base-size22px base-pointer" />
                 </div>
             </div>

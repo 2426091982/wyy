@@ -4,6 +4,7 @@ import {
     LyricSourceData 
 } from "@/types/lyric";
 import { 
+onBeforeMount,
     onBeforeUnmount,
     onMounted, 
     ref, 
@@ -34,16 +35,25 @@ const lyricContainer = ref<HTMLDivElement>();
 
 // 手动滚动歌词后，需要重新定位当前播放歌词的定时器
 let timer: NodeJS.Timeout;
-
+let needDesc: undefined | true;
 const init = async () => {
     const {
         code,
         lrc,
         klyric,
+        needDesc: nd
     } = await getLyric(songData.id) as Response & LyricSourceData;
     if (code === 200 && lrc) {
-        lyricData.value = parseLryic(lrc.lyric);
-        lyricState.lyric = lyricData.value;
+        if (nd) {
+            needDesc = nd;
+            lyricData.value = [{
+                lyric: '纯音乐，请欣赏~',
+                time: 0,
+            }];
+        } else {
+            lyricData.value = parseLryic(lrc.lyric);
+            lyricState.lyric = lyricData.value;
+        }
     }
 };
 
@@ -58,6 +68,7 @@ let startTop:number;
 let autoRoll = false;
 // 根据key来决定当前滚动条的位置
 const roll = (key: number) => {
+    if (needDesc) return;
     cancelAnimationFrame(id);
     const el = lyricContainer.value;
     const lyricBox = lyricList.value;
@@ -89,19 +100,19 @@ const jumpLyric = () => {
     active.value = -1;
 };
 
+onBeforeMount(() => {
+    if (!songData.id || !songData.name) {
+        return router.push('/');
+    };
+});
+
 onMounted(() => {
-    const container = lyricContainer.value;
-    const list = lyricList.value;
-
-    if (!songData.id || !songData.name || !container || !list) return router.push('/');
-
     // 初始化请求歌词数据
     init();
-
     let prevY = 0;
-
     // 鼠标在歌词容器按下，代表需要滚动
     const mouseDown = (e: MouseEvent) => {
+        if (needDesc) return;
         clearTimeout(timer);
         prevY = e.pageY; // 重置上一次的位置·
         showControl.value = autoRoll = true; // 显示歌词控件
@@ -110,16 +121,16 @@ onMounted(() => {
     };
 
     const mouseMove = (e: MouseEvent) => {
-        if (!container || !list) return;
+        if (!lyricContainer.value || !lyricList.value) return;
         let curY = e.pageY;
         let move =  prevY - curY;
-        container.scrollTop += move;
+        lyricContainer.value.scrollTop += move;
         prevY = e.pageY; // 设置上一次位置
         // 获取全部的li进行配对
-        const lis = Array.from(list.children as unknown as HTMLLIElement[]);
+        const lis = Array.from(lyricList.value.children as unknown as HTMLLIElement[]);
         for (let i = 0; i < lis.length; i++) {
             const li = lis[i];
-            const top = li.offsetTop - container.scrollTop;
+            const top = li.offsetTop - lyricContainer.value.scrollTop;
             // 符合条件将会高亮显示，不是当前播放
             if (top >= 120 && top <= 150 && active.value !== i) {
                 active.value = i;
@@ -138,11 +149,12 @@ onMounted(() => {
         document.removeEventListener('mousemove', mouseMove);
         document.removeEventListener('mouseup', mouseUp);
     };
-
-    container.addEventListener('mousedown', mouseDown);
+    if (lyricContainer.value)
+        lyricContainer.value.addEventListener('mousedown', mouseDown);
 });
 
 onBeforeUnmount(() => {
+    alert('Unmount');
     clearTimeout(timer);
     cancelAnimationFrame(id);
 });

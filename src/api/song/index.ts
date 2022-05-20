@@ -6,8 +6,8 @@ export const checkMusic = (id: number) => {
 };
 
 /* 获取音乐地址 */
-export const getSongUrl = (id: number) => {
-    return http.get('/song/url', { id, });
+export const getSongUrl = <T>(id: number) => {
+    return http.get<T>('/song/url', { id, });
 };
 
 /* 获取歌词 */
@@ -19,9 +19,16 @@ export const getLyric = (id: number) => {
 export const getRecommendSongs = () => http.get('/recommend/songs');
 
 /* 获取歌单歌曲 */
-export const getPlayListAll = (id: number, limit = 20, offset = 0) => http.get('/playlist/track/all', { id, limit, offset, });
+export const getPlayListAll = <T>(id: number, limit = 20, offset = 0) => http.get<T>('/playlist/track/all', { id, limit, offset, });
 
 /**
  * 新歌速推
  */
 export const getTopSong = (type: number) => http.get('/top/song', { type, });
+
+/**
+ * 获取歌曲详情
+ * @param ids 音乐ID
+ * @returns 
+ */
+export const getSongDetail = (ids: number) => http.get('/song/detail', {ids});

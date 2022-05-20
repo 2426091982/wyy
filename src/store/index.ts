@@ -17,18 +17,10 @@ import lyric from './modules/lyric';
 
 export const store = createStore({
     state: {
-        isLlogin: false,
+        isLogin: false,
         showLoginD: false,
         onLine: navigator.onLine,
         audio: null,
-    },
-    mutations: {
-        changeIsLogin(state, value) {
-            state.isLlogin = value;
-        },
-        changeShowLoginD(state, value) {
-            state.showLoginD = value;
-        },
     },
     modules: {
         user,

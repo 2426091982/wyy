@@ -5,13 +5,13 @@ import {
 } from '@ant-design/icons-vue';
 import { getSongUrl, getTopSong } from "@/api";
 import { LatesMusic } from "@/types/song";
-import { handlePlayTime, parseArtists } from "@/utils";
-import { useStore } from "@/store";
+import { getItem, handlePlayTime, parseArtists } from "@/utils";
 import { onBeforeUnmount } from "vue";
 import LazyLoading from "@/components/lazyLoading.vue";
 import Loading from "@/components/loading.vue";
+import { playListSong } from "@/utils/song";
+import { PlayListInfo } from "@/store/types/playList";
 
-const store = useStore();
 const loading = ref(true);
 const type = ref(Number(sessionStorage.getItem('late-musice-cat')) || 0);
 const list = ref<LatesMusic[]>([]);
@@ -38,10 +38,12 @@ const cats = [
     }
 ];
 
+const latestList = getItem<PlayListInfo[]>('play-list');
+
 let totalSong: LatesMusic[] = [];
 let lastIndex = 20;
 
-const playSong = async (song: LatesMusic) => {
+const playSong = async (song: LatesMusic, key: number) => {
     const { 
         album,
         artists,
@@ -50,7 +52,7 @@ const playSong = async (song: LatesMusic) => {
         id: sid,
     } = song;
     const [{ url, }] = await getSongUrl(sid) as [{ url: string }];
-    store.commit('currentMusic/changeState', {
+    let songInfo = {
         br: 1200,
         artists: parseArtists(artists),
         id: album.id,
@@ -60,6 +62,9 @@ const playSong = async (song: LatesMusic) => {
         play: true,
         totalTime: handlePlayTime(duration / 1000),
         url,
+    };
+    playListSong(songInfo as PlayListInfo, key, latestList, -1, () => {
+        playSong(song[++key], key);
     });
 };
 
@@ -119,7 +124,7 @@ requestList().finally(() => loading.value = false);
                         <div>
                             <img :src="`${item.album.picUrl || item.album.blurPicUrl}?param=60y60`">
                             <div class="play-song-but  base-absolute">
-                                <caret-right-outlined class="base-size18px" @click="playSong(item)" />
+                                <caret-right-outlined class="base-size18px" @click="playSong(item, key)" />
                             </div>
                         </div>
                         <span>{{ item.name }}</span>

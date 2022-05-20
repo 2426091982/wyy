@@ -11,20 +11,20 @@ import {
     day
 } from '@/utils';
 import { 
-    playListDetail, 
-    playSong,
-    querySong
+    playListDetail,
 } from '@/utils/sheetSong';
 import { useStore } from '@/store';
 import { RecommendSongsData } from '@/store/types/recommendSongs';
-import { SongSheetData } from '@/store/types/songSheet';
+import { listType, SongSheetData } from '@/store/types/songSheet';
 import { RecommendSongsStatic } from '@/types/song';
 import { onMounted, PropType } from '@vue/runtime-core';
 import { ref } from '@vue/runtime-dom';
-import { getRecommendSongs } from '@/api';
+import { getPlayListDetail, getRecommendSongs } from '@/api';
 import { parseRecommendSongs } from '@/utils/parseData';
+import { Response } from '@/types/base';
+import { playListSong, toPlayList } from '@/utils/song';
 
-const { dayRecommend, } = defineProps({
+const { dayRecommend, songSheet } = defineProps({
     dayRecommend: {
         type: Boolean,
         default: false,
@@ -35,13 +35,53 @@ const { dayRecommend, } = defineProps({
     },
 });
 
+let index = 0; // 推荐歌单当前播放的index
 const nowDay = day();
 const store = useStore();
+const list = store.state.songSheet.list;
 const recommendSongs = getItem('recommend-songs') as RecommendSongsStatic;
+const rId = -11;
 const rSong = ref<RecommendSongsData[]>((recommendSongs?.songs) || []);
+const errorFn = () => {
+    playListSong(toPlayList(rSong.value)[++index], index, rSong, rId, errorFn);
+};
 
+type ToPlayListDetail = (sid: number, needFind?: boolean) => Promise<{id: number, list: SongSheetData } | undefined>
+const toPlayListDetail: ToPlayListDetail = async (sid, needFind = false) => {
+    playListDetail(sid);
+    const { 
+        code, 
+        playlist, 
+    } = await getPlayListDetail(sid) as Response & { playlist: SongSheetData };
+    if (code === 200) {
+        if (!needFind) {
+            let hasList = list.find((item) => item.id === sid);
+            if (hasList) return hasList; // 列表已经存在不需要重新加进去
+        }
+        let listVal: listType = {
+            id: sid,
+            list: playlist,
+        };
+        store.commit('songSheet/add', listVal);
+        return listVal;
+    }
+};
 
-if (dayRecommend && store.state.isLlogin) {
+const playSong = async (id: number) => {
+    let hasList = list.find((item) => item.id === id);
+    if (!hasList) {
+        hasList = await toPlayListDetail(id, true) as listType ;
+    }
+    let index = 0;
+    let songs = toPlayList(hasList.list.tracks);
+    let callBack = () => {
+        playListSong(songs[index], index, songs, id, callBack);
+        ++index;
+    }
+    callBack();
+};
+
+if (dayRecommend && store.state.isLogin) {
     onMounted(async () => {
         // 获取每日推荐歌曲
         if (!recommendSongs || recommendSongs.day != nowDay) {
@@ -59,7 +99,7 @@ if (dayRecommend && store.state.isLlogin) {
 
 <template>
     <div class="song-sheet" v-if="dayRecommend">
-        <router-link :to="`/songSheet/${-11}`" :key="-11">
+        <router-link :to="`/songSheet/${rId}`" :key="rId">
             <div class="song-sheet-bg base-pointer">
                 <div class="song-sheet-copywriter base-absolute">
                     <span>根据您的音乐口味生成每日更新</span>
@@ -70,7 +110,7 @@ if (dayRecommend && store.state.isLlogin) {
                 </div>
                 <div 
                     class="play-song-but base-absolute showLatelyList" 
-                    @click.prevent="playSong(+rSong[0].id, 'song')"
+                    @click.prevent="playListSong(toPlayList(rSong)[index], index, rSong, rId, errorFn)"
                 >
                     <caret-right-outlined class="base-size22px" />
                 </div>
@@ -85,7 +125,7 @@ if (dayRecommend && store.state.isLlogin) {
         v-for="item in songSheet" 
         :to="`/songSheet/${item.id}`" 
         :key="item.id"
-        @click="playListDetail(item.id)"
+        @click="toPlayListDetail(item.id)"
         class="song-sheet" 
     >
         <div class="song-sheet-bg base-pointer">
@@ -97,12 +137,12 @@ if (dayRecommend && store.state.isLlogin) {
             </div>
             <div class="song-sheet-nickname base-absolute">
                 <user-outlined />
-                <span>{{ item.creator.nickname }}</span>
+                <span>{{ item.name || item.creator.nickname }}</span>
             </div>
             <img :src="item.picUrl || item.coverImgUrl +'?param=200y200'" width="200" height="200">
             <div 
                 class="play-song-but base-absolute showLatelyList" 
-                @click.stop.prevent="querySong(item.id, 'sheet', $event)">
+                @click.stop.prevent="playSong(item.id)">
                 <caret-right-outlined class="base-size22px" />
             </div>
         </div>

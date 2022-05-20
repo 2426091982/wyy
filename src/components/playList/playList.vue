@@ -3,9 +3,11 @@ import {
     onBeforeUnmount, 
     PropType,
     ref,
-    watch
+    watch,
+    watchEffect
 } from '@vue/runtime-core';
 import { 
+changePlayList,
     getSongSheetSongsData, 
     playListSong, 
     toPlayList 
@@ -40,17 +42,12 @@ let root: Element;
 const store = useStore();
 const currentMusic = store.state.currentMusic;
 const playList = store.state.playList;
+const total = ref(props.bigList ? props.trackCount : playList.total);
 const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE;
+const location = ref(false);
 
 const getList = () => {
-    const currentList = playList.currentList;
-    if (props.bigList && props.id === currentList.id) { // 当前播放列表ID和现在列表一样
-        if (props.tracks.length > currentList.songs.length) {
-            return props.tracks;
-        } else {
-            return currentList.songs;
-        }
-    } else if (props.bigList) { // 进入其他歌单列表
+    if (props.bigList) { // 进入其他歌单列表
         return props.tracks;
     } else { // 侧边列表
         return playList.playList;
@@ -65,24 +62,22 @@ const loadSongsData = () => {
     wait = true;
     let bigList = props.bigList;
     let id = playList.playListId;
-    let total = playList.total;
-    let length = playList.playList.length;
+    let start = playList.playList.length;
     let end = false;
 
     if (bigList) {
         id = Number(props.id);
-        total = +props.trackCount;
-        length = props.tracks.length;
+        start = list.value.length;
     }
-
-    if (total <= length) return;
+    
+    if (total.value <= start) return;
 
     let limit = 20;
-    let offset = length / limit;
-    
-    if ((length + limit) > total) {
-        limit = total - length + 1; 
-        offset = total - limit;
+    let offset = start / limit;
+
+    if ((start + limit) > total.value) {
+        limit = total.value - start + 1; 
+        offset = total.value - limit;
         end = true;
     }
     
@@ -90,11 +85,16 @@ const loadSongsData = () => {
         .then((songs) => {
             end ? songs.shift() : null;
             let songsData = toPlayList(songs);
+            let len = list.value.length;
+            if (list.value[len - 1].id === songs[songs.length -1].id) return; // 防止多次发送同样请求
+            if (offset.toString().includes('.')) { // 针对出现小数点的情况
+                songsData.splice(0, 10);
+            }
             if (bigList) {
-                emit('changeTracks', songsData);
+                return emit('changeTracks', songsData);
             } else if (!bigList && id === playList.currentList.id) {
                 // 如果侧边列表中加载的数据大列表中也用到，那么将同步到大列表中
-                store.commit('playList/updateCurrentList', songsData);
+                return store.commit('playList/updateCurrentList', songsData);
             }
             if (bigList && playList.playListId !== playList.currentList.id) return;    
             store.commit('playList/addPlayList', songsData);
@@ -104,11 +104,12 @@ const loadSongsData = () => {
 
 /* 观察者触发加歌曲载数据 */
 const observerFn: IntersectionObserverCallback = async(entrys) => {
+    if (props.id === -11) return; // 如果是每日推荐那么不需要加载
     const entry = entrys[0];
     const ratio = entry.intersectionRatio > 0;
     if (ratio && !wait) {
         // 如果总长度已经够了那么就清除观察者,只限大列表
-        list.value.length !== playList.total
+        list.value.length !== total.value
             ? loadSongsData() 
             : props.bigList 
                 ? observer.unobserve(entry.target)
@@ -132,70 +133,19 @@ const loadMore = (el: HTMLDivElement) => {
     observer.observe(el);
 };
 
-// 定位到播放的歌曲
-const location = () => {
-    const el = document.querySelector('.play-item') as HTMLDivElement;
-    if (!el) {
-        root.scrollTop = 0;
-        return;
-    }
-    const {
-        offsetTop: elT,
-        scrollHeight: elH,
-    } = el;
-    const {
-        scrollTop: rootT,
-        clientHeight: rootH,
-    } = root;
-    const actualH = elT + elH;
-    const direction = rootT / actualH > 1 ? 't' : 'b';
-    const clearAnimt = () => cancelAnimationFrame(id);
-    const animationFn = () => {
-        let rootT = root.scrollTop;
-        if (rootT < elT && direction === 'b') {
-            let moveH = Math.max(actualH / rootT, 20) * 10;
-            !isFinite(moveH) || Math.floor(moveH) === 0 ? moveH = 5 : null;
-            if (rootT >= elT || rootT + rootH >= root.scrollHeight) {
-                root.scrollTop = elT; // 将最后一次移动，对齐目标位置防止出现偏差
-                return clearAnimt();
-            }
-            root.scrollTop += moveH;
-        } else if (rootT >= elT && direction === 't') {
-            let moveH = Math.max(rootT / actualH, 20) * 10;
-            !isFinite(moveH) || Math.floor(moveH) === 0 ? moveH = 5 : null;
-            if (rootT === 0) {
-                root.scrollTop = elT;
-                return clearAnimt();
-            }
-            root.scrollTop -= moveH;
-        } else {
-            root.scrollTop = elT;
-            return clearAnimt();
-        }
-        requestAnimationFrame(animationFn);
-    };
-    const id = requestAnimationFrame(animationFn);
-};
-
 const playSong = (item: PlayListInfo, key: number) => {
     const { 
         id, 
         tracks, 
-        trackCount, 
+        trackCount,
         bigList,
     } = props;
-    if (bigList) {
-        store.commit('playList/changePlayList', {
-            id,
-            songs: tracks, 
-            size: trackCount, 
-        });
+    if (bigList && playList.playListId !== id) {
+        changePlayList(tracks, trackCount, id);
     }
-    store.commit('playList/createCurrentList', {
-        id: id || -1,
-        songs: list,
+    playListSong(item, key, list.value, playList.playListId, () => {
+        playSong(list.value[++key], key);    
     });
-    playListSong(item, key);
 };
 
 watch(
@@ -206,6 +156,14 @@ watch(
     }
 );
 
+watchEffect(() => {
+    list.value.find((item) => { // 如果当前歌曲在列表中，才显示定位按钮
+        return (item.id === currentMusic.id 
+        ? location.value = true
+        : false);
+    });
+});
+
 onBeforeUnmount(() => {
     observer && observer.unobserve(root);
 });
@@ -213,9 +171,13 @@ onBeforeUnmount(() => {
 
 <template>
     <div>
-        <div :class="`current-location base-pointer  ${ bigList ? 'big-list' : '' }`" @click="location">
+        <a
+            v-if="location"
+            href="#scroll-smooth"
+            :class="`current-location base-pointer  ${ bigList ? 'big-list' : '' }`"
+        >
             <Icon type="icon-dingwei" size="24"></Icon>
-        </div>
+        </a>
         <a-empty 
             v-if="!playList.playList.length && !bigList" 
             :image="simpleImage"
@@ -237,6 +199,7 @@ onBeforeUnmount(() => {
             <div 
                 v-for="(item, key) in list" 
                 :key="item.id" 
+                :id="currentMusic.id === item.id ? `scroll-smooth` : ''"
                 :class="`current-play-item ${currentMusic.id === item.id ? 'play-item' : ''}`" 
                 @dblclick="playSong(item, key)"
             >
@@ -255,10 +218,10 @@ onBeforeUnmount(() => {
         <lazyLoading @observer="loadMore">
             {{  
                 bigList 
-                    ? tracks.length >= trackCount 
+                    ? list.length >= trackCount 
                         ? '已经到底了' 
                         : '加载中...'
-                    : playList.playList.length >= playList.total 
+                    : list.length >= playList.total 
                         ? '已经到底了' 
                         : '加载中...' 
             }}
@@ -271,6 +234,7 @@ onBeforeUnmount(() => {
     position: absolute;
     bottom: 50px;
     right: 15px;
+    color: #999999;
     transition: color 0.2s;
     z-index: 10;
 

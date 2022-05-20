@@ -31,7 +31,6 @@ const list = async () => {
 
 const observer = (el: HTMLDivElement) => {
     const ob = new IntersectionObserver((entrys) => {
-        console.log(entrys[0].intersectionRatio);
         if (entrys[0].intersectionRatio > 0) list();
     }, {
         rootMargin: '0px 0px 0px 0px',

@@ -3,25 +3,29 @@ import { getSearch } from "@/api";
 import { RecommendSongsData } from "@/store/types/recommendSongs";
 import { Response } from "@/types/base";
 import { SearchReslute } from "@/types/search";
-import { onBeforeUnmount, ref, watch } from "vue";
+import { onBeforeUnmount, ref, watch } from "@vue/runtime-core";
 import { useRoute } from "vue-router";
 import SearchList from "@/components/search/searchList.vue";
 import LazyLoading from "@/components/lazyLoading.vue";
 import Loading from "@/components/loading.vue";
 import { handleSymbol } from "@/utils/search";
 
+/**
+ * 数据比较少的时候可能observer和watch会同时触发
+ * 所以需要一个等待的条件，让他们只触发一个
+ */
+let wait = false;
+let limit = 30;
+let offset = 0;
 const total = ref(0);
 const route = useRoute();
 const loading = ref(false);
 const listData = ref<RecommendSongsData[]>([]);
 const keyword = ref(route.params.keyword as string);
 
-let limit = 30;
-let offset = 0;
-
 const init = async () => {
+    wait = true;
     if (listData.value.length >= total.value && total.value !== 0) return;
-    loading.value = true;
     const {
         code,
         result: {
@@ -34,12 +38,12 @@ const init = async () => {
         listData.value.push(...songs);
         total.value = songCount;
     }
-    loading.value = false;
+    wait = false;
 };
 
 const observer = (el: HTMLDivElement) => {
     const ob = new IntersectionObserver(async (entrys) => {
-        if (entrys[0].intersectionRatio > 0) {
+        if (entrys[0].intersectionRatio > 0 && !wait) {
             await init();
         }
     });
@@ -50,11 +54,13 @@ const observer = (el: HTMLDivElement) => {
 watch(
     () => route.params.keyword,
     (n) => {
-        if (!n) return;
-        offset = 0;
+        if (!n || wait) return;
+        loading.value = true;
         listData.value = [];
+        total.value = offset = 0;
         keyword.value = `${n}`;
         init();
+        loading.value = false;
     }
 );
 </script>
@@ -62,6 +68,7 @@ watch(
 <template>
     <div>
         <h1 class="search-keyword">搜索&nbsp; {{ keyword }} </h1>
+        <span>搜索到 <mark>{{ total }}</mark> 条</span>
         <Loading 
             :loading="loading"
             :top="`200px`"

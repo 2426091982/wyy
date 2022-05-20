@@ -24,7 +24,7 @@ import { useStore } from "@/store";
 import { SongSheetData } from "@/store/types/songSheet";
 import { Response } from "@/types/base";
 import { ref } from "@vue/reactivity";
-import { defineComponent, onMounted, watch } from "@vue/runtime-core";
+import { onMounted } from "@vue/runtime-core";
 import { parseSongSheetInfo } from "@/utils/parseData";
 import { PlayListInfo } from "@/store/types/playList";
 import NavBar from '@/components/navBar/index.vue';
@@ -55,8 +55,10 @@ const playCurrentList = () => {
         store.commit('currentMusic/playSong', !currentMusic.play);
         return;
     }
-    playListSong(tracks.value[0], 0);
-    changePlayList(songSheetInfo.value!.tracks, songSheetInfo.value!.trackCount, id.value);
+    playListSong(tracks.value[0], 0, tracks.value, id.value, () => {
+        playCurrentList();
+    });
+    changePlayList(tracks.value, songSheetInfo.value!.trackCount, id.value);
 };
 
 /* 创建歌单时间 */
@@ -86,7 +88,7 @@ const init = async () => {
             coverImgUrl: '',
             createTime: now(),
             description: '根据你的口味每日推荐的歌单',
-            id: -1,
+            id: -11,
             creator: {
                 avatarImgId: 1,
                 avatarUrl: identify.imageUrl,
@@ -99,7 +101,7 @@ const init = async () => {
             playCount: 0,
             shareCount: 0,
             subscribed: false,
-            tags: ['流星'],
+            tags: ['每日推荐'],
             trackCount: songsData.songs.length,
             tracks: songsData.songs,
         } as SongSheetData;
@@ -112,7 +114,6 @@ const init = async () => {
     } else {
         tracks.value = toPlayList(songSheetInfo.value!.tracks);
     }
-
     loading.value = false;
 };
 
@@ -120,6 +121,7 @@ onMounted(init);
 </script>
 
 <script lang="ts">
+import { defineComponent } from '@vue/runtime-core';
 export default defineComponent({
     name: 'songSheet',
 });
@@ -136,7 +138,7 @@ export default defineComponent({
                         width="184" 
                         height="184" 
                         alt="图片背景"
-                    >
+                    />
                     <div class="calendar-container" v-else>
                         <div class="calendar base-absolute">
                             <span class="calendar base-absolute calendar-day"> {{ nowDay }} </span>

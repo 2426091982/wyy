@@ -35,7 +35,7 @@ const store = useStore();
 const router = useRouter();
 const songSheetData = store.state.songSheet;
 const playlists = ref<SongSheetData[]>([]);
-const cat = ref(songSheetData.tagMame);
+const cat = ref(songSheetData.tagName);
 const hotTags = ref<Tags[]>([]);
 const tags = ref<Tag[][]>([]);
 const all = ref<Tag>({} as Tag)                                                        ;
@@ -54,7 +54,7 @@ let offset = 0;
 const selectTag = (tag: Tag | Tags) => {
     cat.value = tag.name;
     showTagList.value = false;
-    store.commit('songSheet/tagMame', cat.value);
+    store.commit('songSheet/tagName', cat.value);
 };
 
 /**

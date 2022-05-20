@@ -29,15 +29,15 @@ export const day = () => new Date().getDate();
 
 export const setItem = (key: string, value: any) => localStorage.setItem(key, JSON.stringify(value));
 
-export const getItem = (key: string) => JSON.parse(localStorage.getItem(key) || 'null');
+export const getItem = <T>(key: string): T => JSON.parse(localStorage.getItem(key) || 'null');
 
 export const clearDefaultEvent = (e: Event) => e.preventDefault();
 
 // 将数据挂载到Vuex
 export const mountData = (profile: unknown, tips = '登录成功') => {
     store.commit('user/updateUserInfo', profile); // 存储数据
-    store.commit('changeIsLogin', true);
-    store.commit('changeShowLoginD', false);
+    store.state.isLogin = true;
+    store.state.showLoginD = false;
     message.success(tips);
 };
 
@@ -66,7 +66,6 @@ export const getLoginStatus = async () => {
             profile,
         },
     } = await getStatus() as StatusData;
-    // if (profile == null) return;
     return deconstruction(
         [
             'avatarUrl',
@@ -81,7 +80,7 @@ export const getLoginStatus = async () => {
 // 退出登录
 export const loginOut = async () => {
     store.commit('user/updateUserInfo', null); // 卸载数据
-    store.commit('changeIsLogin', false);
+    store.state.isLogin = false;
     message.success('退出登录成功');
     await logout();
 };
@@ -91,7 +90,7 @@ export const noAutoLogin = () => window.addEventListener('beforeunload', loginOu
 
 // 检测登录
 export const isLogin = () => {
-    if (!store.state.isLlogin) {
+    if (!store.state.isLogin) {
         message.error('请登录后，再进行操作~');
         return false;
     }
