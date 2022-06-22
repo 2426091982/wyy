@@ -90,7 +90,7 @@ const route = useRoute();
 const { name, id, } = route.query;
 const currentMusic = store.state.currentMusic;
 const playList = store.state.playList;
-const tracks = getItem('play-list') || [] as  RecommendSongsData[];
+const tracks = (getItem('play-list') || []) as  RecommendSongsData[];
 
 // 解析分享类型
 const parseType = (type: number) => {
