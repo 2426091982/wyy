@@ -42,7 +42,7 @@ const playSong = async (id: number) => {
                 <div class="tabs-top base-absolute">
                     <crown-outlined />
                 </div>
-                <img :src="item.picUrl || item.coverImgUrl + '?param=135y135'">
+                <img loading="lazy" :src="item.picUrl || item.coverImgUrl + '?param=135y135'">
                 <div class="play-song-but base-absolute showLatelyList" @click="playSong(item.id)">
                     <caret-right-outlined class="base-size22px base-pointer" />
                 </div>

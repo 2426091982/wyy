@@ -167,10 +167,10 @@ watch(
     <div>
         <div v-if="highqualityData" class="highquality-main">
             <div class="highquality-main-bg base-absolute">
-                <img :src="highqualityData.coverImgUrl" width="1100" alt="背景图片" >
+                <img loading="lazy" :src="highqualityData.coverImgUrl" width="1100" alt="背景图片" >
             </div>
             <div class="highquality-main-detail">
-                <img :src="highqualityData.coverImgUrl + '?param=140y140'" width="140" height="140" alt="">
+                <img loading="lazy" :src="highqualityData.coverImgUrl + '?param=140y140'" width="140" height="140" alt="">
                 <div class="highquality-main-body">
                     <div>
                         <a-button class="highquality-main-btn" ghost shape="round" @click="router.push(`/highquality/${cat}`)">

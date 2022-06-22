@@ -204,7 +204,7 @@ watch(
                     <div class="recommend-mv-img base-pointer" @click="router.push(`/mv/${item.id}`)">
                         <span class="play-count base-absolute"> <play-circle-outlined /> {{ parsePlayCount(String(item.playCount)) }}</span>
                         <span class="play-duration base-absolute">{{ handlePlayTime(item.duration / 1000) }}</span>
-                        <img :src="item.cover + '?param=140y90'" width="140" height="90">
+                        <img loading="lazy" :src="item.cover + '?param=140y90'" width="140" height="90">
                     </div>
                     
                     <div class="recommmend-mv-detail">

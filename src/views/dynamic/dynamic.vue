@@ -227,7 +227,7 @@ const updateCData = (source: UserEvents, cData: CommentInfo) => {
                 <a-space>
                     <a-avatar size="large">
                         <template #icon>
-                            <img :src="event.user.avatarUrl" alt="头像">
+                            <img loading="lazy" :src="event.user.avatarUrl" alt="头像">
                         </template>
                     </a-avatar>
                     <div class="author-info">
@@ -243,7 +243,7 @@ const updateCData = (source: UserEvents, cData: CommentInfo) => {
                     <div class="share-song showLatelyList base-pointer" @click="play(data.events, id)">
                         <div style="position: relative">
                             <caret-right-outlined class="play-but"/>
-                            <img :src="event.json.song.img80x80" width="40" height="40" alt="音乐">
+                            <img loading="lazy" :src="event.json.song.img80x80" width="40" height="40" alt="音乐">
                         </div>
                         <div class="share-song-detail">
                             <span>

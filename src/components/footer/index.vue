@@ -459,7 +459,7 @@ watch(() => currentMusic.url, handleURL);
 <template>
     <div :class="`song-detail-container ${!currentMusic.url ? 'invalid' : ''}`">
         <div class="song-detail">
-            <img 
+            <img loading="lazy" 
                 :src="currentMusic.pic + '?param=50y50'" 
                 @click="$router.push('/lyric')"
             >

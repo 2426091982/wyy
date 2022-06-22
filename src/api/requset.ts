@@ -36,7 +36,7 @@ class Request {
     constructor() {
         const headers = new Headers;
         headers.set('Content-Type', 'application/x-www-form-urlencoded');
-        this.baseUrl = 'http://localhost:5000';
+        this.baseUrl = 'https://wyy-app.vercel.app';
         this.config = {
             credentials: 'include',
             mode: 'cors',
@@ -68,7 +68,7 @@ class Request {
             timer = setTimeout(() => {
                 clearTimeout(timer);
                 this.abort(abortController);
-            }, 10000);
+            }, 20000);
         });
     }
 

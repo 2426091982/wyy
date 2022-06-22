@@ -88,7 +88,7 @@ const getRecommendSongsData = async (change = false) => {
         } = await getRecommendResource<Response & { recommend: SongSheetData[] }>();
         if (change) songSheet.value = [];
         if (code === 200) {
-            songSheet.value = recommend.slice(0, 10);
+            songSheet.value = recommend.slice(0, limit);
             len = songSheet.value.length;
         }
     }
@@ -170,7 +170,7 @@ watch(
                         >
                             <caret-right-outlined class="base-size18px" />
                         </div>
-                        <img :src="item.picUrl + '?param=50y50'">
+                        <img loading="lazy" :src="item.picUrl + '?param=50y50'">
                     </div>
                     <div class="new-song-info">
                         <div class="new-song-name">

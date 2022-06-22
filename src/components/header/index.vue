@@ -87,7 +87,7 @@ const sends = async () => {
     <a-layout-header class="header" style="padding: 0">
         <div class="flex-item">
             <div class="logo" @click="$router.push('/')">
-                <img src="/images/logo1.png" alt="logo">
+                <img loading="lazy" src="/images/logo1.png" alt="logo">
                 网抑云音乐
             </div>
             <div class="historical">
@@ -102,7 +102,7 @@ const sends = async () => {
                         <a-space class="base-pointer">
                             <a-avatar>
                                 <template #icon>
-                                    <img :src="user.info.avatarUrl" alt="">
+                                    <img loading="lazy" :src="user.info.avatarUrl" alt="">
                                 </template>
                             </a-avatar>
                             <span class="login">

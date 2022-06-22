@@ -72,7 +72,7 @@ const switchLogin = () => isPhoneLogin.value = !isPhoneLogin.value;
         <div v-if="isPhoneLogin">
             <div class="login-modal-header">
                 <div class="two-code-login">
-                    <img src="/images/to-two-code.png" @click="emits('changeIsTwoCodeLogin')" alt="二维码登录" />
+                    <img loading="lazy" src="/images/to-two-code.png" @click="emits('changeIsTwoCodeLogin')" alt="二维码登录" />
                     <span> 扫码登录更安全 </span>
                 </div>
                 <div class="close-icon">
@@ -80,7 +80,7 @@ const switchLogin = () => isPhoneLogin.value = !isPhoneLogin.value;
                 </div>
             </div>
             <div class="login-modal-body">
-                <img src="/images/login-bg.png" alt="背景" />
+                <img loading="lazy" src="/images/login-bg.png" alt="背景" />
                 <a-form
                     ref="formRef"
                     :rules="rules"

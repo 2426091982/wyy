@@ -64,7 +64,7 @@ document.addEventListener('keydown', (e) => {
     <div>
         <div class="login-modal-header">
             <div class="two-code-login">
-                <img src="/images/to-two-code.png" @click="emits('changeIsTwoCodeLogin')" alt="二维码登录" />
+                <img loading="lazy" src="/images/to-two-code.png" @click="emits('changeIsTwoCodeLogin')" alt="二维码登录" />
                 <span> 扫码登录更安全 </span>
             </div>
             <div class="close-icon">
@@ -72,7 +72,7 @@ document.addEventListener('keydown', (e) => {
             </div>
         </div>
         <div class="login-modal-body">
-            <img src="/images/email.png" alt="背景" />
+            <img loading="lazy" src="/images/email.png" alt="背景" />
             <a-form
                 ref="formRef"
                 :rules="rules"

@@ -79,10 +79,10 @@ onBeforeUnmount(() => {
                 @mouseleave="enter = false"
             >
                 <div class="phone-guide">
-                    <img src="/images/two-code-login.png" width="auto" alt="手机扫码指引">
+                    <img loading="lazy" src="/images/two-code-login.png" width="auto" alt="手机扫码指引">
                 </div>
                 <div class="two-code">
-                    <img :src="base64" style="background-color: #ccc" alt="二维码">
+                    <img loading="lazy" :src="base64" style="background-color: #ccc" alt="二维码">
                     <div v-if="reGet || wait" class="two-code-mask ">
                         <template v-if="reGet">
                             <span>二维码已失效</span>

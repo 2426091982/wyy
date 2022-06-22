@@ -122,7 +122,7 @@ onDeactivated(() => {
                     @click="jumpPlay(key)"
                 >
                     <div style="position: relative">
-                        <img :src="item.imageUrl + '?param=540y200'" alt="">
+                        <img loading="lazy" :src="item.imageUrl + '?param=540y200'" alt="">
                         <span class="typeTitle" :style="{backgroundColor: item.titleColor}"> {{ item.typeTitle }} </span>
                     </div>
                 </div>

@@ -132,7 +132,7 @@ export default defineComponent({
         <Loading :loading="loading" :top="'200px'">
             <div v-if="songSheetInfo">
                 <div class="song-sheet-info">
-                    <img 
+                    <img loading="lazy" 
                         v-if="id !== -11"
                         :src="songSheetInfo.coverImgUrl + '?param=184y184'" 
                         width="184" 
@@ -153,7 +153,7 @@ export default defineComponent({
                         <div class="song-sheet-info-author">
                             <a-avatar v-if="songSheetInfo?.creator" size="small">
                                 <template #icon>
-                                    <img :src="songSheetInfo.creator.avatarUrl" alt="">
+                                    <img loading="lazy" :src="songSheetInfo.creator.avatarUrl" alt="">
                                 </template>
                             </a-avatar>
                             <a-avatar v-else size="small">

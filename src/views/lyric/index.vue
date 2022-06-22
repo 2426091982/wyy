@@ -182,7 +182,7 @@ watch(
                     transform: `${songData.play ? 'rotateZ(0deg)' : 'rotateZ(-40deg)'}`,
                 }"
             >
-                <img 
+                <img loading="lazy" 
                     src="https://s3.music.126.net/mobile-new/img/needle-ab.png?4b81da043356110081e5ccaed2e6f2ad=" 
                     width="85"
                     alt=""
@@ -194,7 +194,7 @@ watch(
                     animationPlayState: `${songData.play ? 'running' : 'paused'}`,
                 }"
             >
-                <img 
+                <img loading="lazy" 
                     :src="songData.pic + '?param=215y215'" 
                     width="200" 
                     height="200" 
