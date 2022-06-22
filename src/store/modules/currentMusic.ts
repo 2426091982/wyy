@@ -1,4 +1,4 @@
-import { CurrentMusic } from "../types/currentMusic";
+import type { CurrentMusic } from "../types/currentMusic";
 
 /* 存放当前歌曲状态 */
 const currentMusic: CurrentMusic = {

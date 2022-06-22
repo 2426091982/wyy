@@ -36,7 +36,7 @@ import { CaretRightOutlined } from '@ant-design/icons-vue';
 import { useStore } from '@/store';
 import { useRoute } from "vue-router";
 import { SongData } from "@/types/song";
-import { CurrentMusicState } from '@/store/types/currentMusic';
+import type { CurrentMusicState } from '@/store/types/currentMusic';
 import Loading from '@/components/loading.vue';
 import Comment from '@/components/comment/comment.vue';
 import { RecommendSongsData } from '@/store/types/recommendSongs';
