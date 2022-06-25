@@ -1,27 +1,27 @@
 <script lang="ts" setup>
 import { NavBar as navBar } from '@/types/base';
-// import NavBar from '@/components/navBar/index.vue';
+import NavBar from '@/components/navBar/index.vue';
 import routers from '@/router/routes';
 import OutIn from '@/components/out-in.vue';
 
-// let list = [] as navBar;
-// routers.forEach((router) => {
-//     let meta = router.meta;
-//     if (!meta) return;
-//     if (meta.name === '发现音乐') {
-//         router.children!.forEach((item) => {
-//             list.push({
-//                 name: item.name as string,
-//                 path: `${router.path}/${item.path}`,
-//             });
-//         });
-//     }
-// });
+let list = [] as navBar;
+routers.forEach((router) => {
+    let meta = router.meta;
+    if (!meta) return;
+    if (meta.name === '发现音乐') {
+        router.children!.forEach((item) => {
+            list.push({
+                name: item.name as string,
+                path: `${router.path}/${item.path}`,
+            });
+        });
+    }
+});
 </script>
 
 <template>
     <div>
-        <!-- <NavBar :list="list"></NavBar> -->
+        <NavBar :list="list"></NavBar>
         <div class="main-base">
             <router-view v-slot="{ Component }">
                 <out-in>
