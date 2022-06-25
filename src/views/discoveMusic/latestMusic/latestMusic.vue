@@ -64,9 +64,7 @@ const playSong = async (song: LatesMusic, key: number) => {
         totalTime: handlePlayTime(duration / 1000),
         url,
     };
-    playListSong(songInfo as PlayListInfo, key, latestList, -1, () => {
-        playSong(song[++key], key);
-    });
+    playListSong(songInfo as PlayListInfo, key, latestList, -1);
 };
 
 /**
@@ -140,7 +138,10 @@ requestList().finally(() => loading.value = false);
                     </div>
                     <span class="late-musice-item-time">{{ handlePlayTime(item.duration / 1000) }}</span>
                 </div>
-                <LazyLoading @observer="observer"></LazyLoading>
+                <LazyLoading 
+                    v-if="list.length < 100"
+                    @observer="observer"
+                ></LazyLoading>
             </div>
         </Loading>
     </div>

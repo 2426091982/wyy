@@ -27,7 +27,7 @@ const handlePlay = (data: RecommendSongsData) => {
     let songInfo = toPlayList(data);
     let index = 0;
     let callBack = () => {
-        playListSong(songInfo[index] || list[index], index, list, -1, callBack);
+        playListSong(songInfo[index] || list[index], index, list, -1);
         index++;
     };
     callBack();

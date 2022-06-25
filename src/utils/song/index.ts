@@ -56,7 +56,10 @@ export const getSongInfo =  async (id: number, type = 'song') => {
  */
 export const checkSong = (id: number) => {
     return new Promise(async (resolve, reject) => {
-        const { success, message: mes, } = await checkMusic(id) as { success: boolean, message: string };
+        const { 
+            success, 
+            message: mes 
+        } = await checkMusic(id) as { success: boolean, message: string };
         if (!success) {
             message.warn(mes + '，现为你播放下一首~');
             return reject(mes);
@@ -70,7 +73,9 @@ export const checkSong = (id: number) => {
  * @param songs 歌曲数据
  * @returns 
  */
-export const toPlayList = (songs: RecommendSongsData[] | RecommendSongsData) => {
+export const toPlayList = (
+    songs: RecommendSongsData[] | RecommendSongsData
+) => {
     const playList: PlayListInfo[] = [];
     if (!Array.isArray(songs)) {
         songs = [songs];
@@ -101,20 +106,23 @@ export const toPlayList = (songs: RecommendSongsData[] | RecommendSongsData) => 
  * @param error 检测是否可用，错误后处理函数
  * @returns 
  */
-export const playListSong = async (songInfo: PlayListInfo, index: number, list: any, id: number, error: () => void) => {
-    checkSong(songInfo.id).then(async () => {
-        if (!songInfo.url) {
-            const [{ url, }] = await getSongUrl(songInfo.id) as SongData[];
-            songInfo.url = url;
-            if (songInfo.ar) {
-                songInfo.artists = parseArtists(songInfo.ar);
-            }
+export const playListSong = async (
+    songInfo: PlayListInfo, 
+    index: number, 
+    list: any, 
+    id: number
+) => {
+    if (!songInfo.url) {
+        const [{ url, }] = await getSongUrl(songInfo.id) as SongData[];
+        songInfo.url = url;
+        if (songInfo.ar) {
+            songInfo.artists = parseArtists(songInfo.ar);
         }
-        store.commit('playList/changeIndex', index);
-        changePlayList(list, list.length, id);
-        store.commit('currentMusic/changeState', songInfo);
-        store.commit('currentMusic/playSong', true);
-    }).catch(error);
+    }
+    store.commit('playList/changeIndex', index);
+    changePlayList(list, list.length, id);
+    store.commit('currentMusic/changeState', songInfo);
+    store.commit('currentMusic/playSong', true);
 };
 
 /**
@@ -123,7 +131,11 @@ export const playListSong = async (songInfo: PlayListInfo, index: number, list: 
  * @param trackCount 歌曲总数
  * @param id 歌单ID
  */
-export const changePlayList = (tracks: any, trackCount: number, id = -1) => {
+export const changePlayList = (
+    tracks: any, 
+    trackCount: number, 
+    id = -1
+) => {
     if (tracks[0] && typeof (tracks[0].currentTime) !== 'string') {
         toPlayList(tracks as unknown as RecommendSongsData[])
     }

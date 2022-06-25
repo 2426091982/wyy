@@ -43,7 +43,7 @@ window.addEventListener('offline', () => (store.state.onLine = false));
         <a-layout style="width: 100%; height: 100%">
             <Header></Header>
             <a-layout>
-                <a-layout-sider theme='light'>
+                <!-- <a-layout-sider theme='light'>
                     <a-menu 
                         v-model:selectedKeys="selectedKeys" 
                         mode="inline"
@@ -57,7 +57,7 @@ window.addEventListener('offline', () => (store.state.onLine = false));
                             </a-menu-item>
                         </template>
                     </a-menu>
-                </a-layout-sider>
+                </a-layout-sider> -->
                 <a-layout-content class="main scroll-style">
                     <router-view v-slot="{ Component }">
                         <out-in>

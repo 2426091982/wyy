@@ -143,9 +143,7 @@ const playSong = (item: PlayListInfo, key: number) => {
     if (bigList && playList.playListId !== id) {
         changePlayList(tracks, trackCount, id);
     }
-    playListSong(item, key, list.value, playList.playListId, () => {
-        playSong(list.value[++key], key);    
-    });
+    playListSong(item, key, list.value, playList.playListId);
 };
 
 watch(

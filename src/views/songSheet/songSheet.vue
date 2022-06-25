@@ -56,9 +56,7 @@ const playCurrentList = () => {
         store.commit('currentMusic/playSong', !currentMusic.play);
         return;
     }
-    playListSong(tracks.value[0], 0, tracks.value, id.value, () => {
-        playCurrentList();
-    });
+    playListSong(tracks.value[0], 0, tracks.value, id.value);
     changePlayList(tracks.value, songSheetInfo.value!.trackCount, id.value);
 };
 

@@ -27,7 +27,7 @@ const playSong = async (id: number) => {
     if (code === 200) {
         let index = 0;
         const callBack = () => {
-            playListSong(songs[index], index, songs, id, callBack);
+            playListSong(songs[index], index, songs, id);
             index++;
         };
         callBack();

@@ -97,7 +97,7 @@ const playStrategy = {
         }
         handleStartPlay();
         let callBack = () => {
-            playListSong(list[index], index, list, id, callBack);
+            playListSong(list[index], index, list, id);
             if (total > 1) {
                 ++index;
             } else { // 处理单曲
@@ -131,7 +131,7 @@ const playStrategy = {
         prevI = index;
         handleStartPlay();
         const callBack = () => {
-            playListSong(list[index], index, list, id, callBack);
+            playListSong(list[index], index, list, id);
             ++index;
         };
         callBack();

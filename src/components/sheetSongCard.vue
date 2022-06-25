@@ -43,7 +43,7 @@ const recommendSongs = getItem('recommend-songs') as RecommendSongsStatic;
 const rId = -11;
 const rSong = ref<RecommendSongsData[]>((recommendSongs?.songs) || []);
 const errorFn = () => {
-    playListSong(toPlayList(rSong.value)[++index], index, rSong, rId, errorFn);
+    playListSong(toPlayList(rSong.value)[++index], index, rSong, rId);
 };
 
 type ToPlayListDetail = (sid: number, needFind?: boolean) => Promise<{id: number, list: SongSheetData } | undefined>
@@ -75,7 +75,7 @@ const playSong = async (id: number) => {
     let index = 0;
     let songs = toPlayList(hasList.list.tracks);
     let callBack = () => {
-        playListSong(songs[index], index, songs, id, callBack);
+        playListSong(songs[index], index, songs, id);
         ++index;
     }
     callBack();
@@ -110,7 +110,7 @@ if (dayRecommend && store.state.isLogin) {
                 </div>
                 <div 
                     class="play-song-but base-absolute showLatelyList" 
-                    @click.prevent="playListSong(toPlayList(rSong)[index], index, rSong, rId, errorFn)"
+                    @click.prevent="playListSong(toPlayList(rSong)[index], index, rSong, rId)"
                 >
                     <caret-right-outlined class="base-size22px" />
                 </div>
