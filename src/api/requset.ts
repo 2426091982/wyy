@@ -39,7 +39,7 @@ class Request {
     constructor() {
         const headers = new Headers;
         headers.set('Content-Type', 'application/x-www-form-urlencoded');
-        this.baseUrl = 'https://wyy-app.vercel.app';
+        this.baseUrl = 'http://112.74.37.119:3000';
         this.config = {
             credentials: 'include',
             mode: 'cors',
