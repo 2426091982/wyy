@@ -87,9 +87,6 @@ export const loginOut = async () => {
     await logout();
 };
 
-// 退出登录
-export const noAutoLogin = () => window.addEventListener('beforeunload', loginOut);
-
 // 检测登录
 export const isLogin = () => {
     if (!store.state.isLogin) {

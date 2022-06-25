@@ -8,7 +8,7 @@ import {
     createTwoCodeKey,
     checkTwoCodeEffective
 } from '@/api';
-import { getLoginStatus, mountData, noAutoLogin } from '@/utils';
+import { getLoginStatus, mountData } from '@/utils';
 
 type TwoCodeKey =  { unikey: string };
 type TwoCodeUrl =  { qrimg: string };
@@ -38,7 +38,6 @@ let timer = setInterval(async () => {
         break;
     case 803: // 扫码成功，存储cookies
         mountData(await getLoginStatus());
-        noAutoLogin();
         clearInterval(timer);
         break;
     }

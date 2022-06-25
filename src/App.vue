@@ -8,7 +8,6 @@ import { VerticalAlignTopOutlined } from '@ant-design/icons-vue';
 import { onBeforeMount } from '@vue/runtime-core';
 import { message } from 'ant-design-vue';
 import { useRouter } from 'vue-router';
-import { watch } from 'vue';
 import { useStore } from '@/store';
 import Header from '@/components/header/index.vue';
 import routes from '@/router/routes';

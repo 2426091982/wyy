@@ -123,7 +123,11 @@ requestList().finally(() => loading.value = false);
                     <div class="late-musice-item-bg">
                         <span>{{ key + 1 >= 10 ? key + 1 : '0' + (key + 1) }}</span>
                         <div>
-                            <img loading="lazy" :src="`${item.album.picUrl || item.album.blurPicUrl}?param=60y60`">
+                            <img 
+                                loading="lazy" 
+                                :src="`${item.album.picUrl || item.album.blurPicUrl}?param=60y60`"
+                                alt="歌曲图片"
+                            />
                             <div class="play-song-but  base-absolute">
                                 <caret-right-outlined class="base-size18px" @click="playSong(item, key)" />
                             </div>

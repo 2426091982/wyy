@@ -139,7 +139,7 @@ if (dayRecommend && store.state.isLogin) {
                 <user-outlined />
                 <span>{{ item.name || item.creator.nickname }}</span>
             </div>
-            <img loading="lazy" :src="item.picUrl || item.coverImgUrl +'?param=200y200'" width="200" height="200">
+            <img :src="item.picUrl || item.coverImgUrl +'?param=200y200'" width="200" height="200">
             <div 
                 class="play-song-but base-absolute showLatelyList" 
                 @click.stop.prevent="playSong(item.id)">

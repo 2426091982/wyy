@@ -10,9 +10,16 @@ defineProps({
 
 <template>
     <div class="nav-bar">
-        <div v-for="item in list" class="nav-bar-item" :key="item.path">
+        <div 
+            v-for="item in list" 
+            class="nav-bar-item" 
+            :key="item.path"
+        >
             <div>
-                <router-link class="anv-bar-text" :to="item.path"> {{ item.name }} </router-link>
+                <router-link 
+                    class="anv-bar-text" 
+                    :to="item.path"
+                > {{ item.name }} </router-link>
             </div>
         </div>
     </div>

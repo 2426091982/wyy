@@ -183,7 +183,11 @@ watch(
                         >
                             <caret-right-outlined class="base-size18px" />
                         </div>
-                        <img loading="lazy" :src="item.picUrl + '?param=50y50'">
+                        <img 
+                            loading="lazy" 
+                            :src="item.picUrl + '?param=50y50'" 
+                            alt="最新音乐图片"
+                        />
                     </div>
                     <div class="new-song-info">
                         <div class="new-song-name ellipsis">

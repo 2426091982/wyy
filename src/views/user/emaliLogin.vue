@@ -7,7 +7,7 @@ import {
 import { reactive, ref, UnwrapRef } from '@vue/reactivity';
 import { emailLogin } from '@/api';
 import { UserInfo } from '@/store/types/user';
-import { checkLogin, noAutoLogin } from '@/utils';
+import { checkLogin,  } from '@/utils';
 
 interface FormState {
   email: string;
@@ -51,9 +51,6 @@ const onSubmit = async () => {
     let { code, profile, } = await emailLogin(email, password) as UserInfo & { code: number };
     checkLogin(code, profile);
     loading.value = false;
-    if (!autoLogin.value) {
-        noAutoLogin();
-    }
 };
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') onSubmit();

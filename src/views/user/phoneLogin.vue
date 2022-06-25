@@ -12,7 +12,7 @@ import {
 import EmailLogin from './emaliLogin.vue';
 import { phoneLogin } from "@/api";
 import { UserInfo } from "@/store/types/user";
-import { checkLogin, noAutoLogin } from "@/utils";
+import { checkLogin } from "@/utils";
 
 interface FormState {
   phone: string;
@@ -50,15 +50,13 @@ const rules = reactive({
         }
     ],
 });
+
 const onSubmit = async () => {
     let { phone, password, } = await formRef.value.validate() as FormState;
     loading.value = true;
     let { code,  profile, } = await phoneLogin(+phone, password) as UserInfo & { code: number };
     checkLogin(code, profile);
     loading.value = false;
-    if (!autoLogin.value) {
-        noAutoLogin();
-    }
 };
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') onSubmit();

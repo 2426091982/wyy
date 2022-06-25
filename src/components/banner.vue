@@ -122,7 +122,12 @@ onDeactivated(() => {
                     @click="jumpPlay(key)"
                 >
                     <div style="position: relative">
-                        <img loading="lazy" :src="item.imageUrl + '?param=540y200'" alt="">
+                        <img 
+                            :src="item.imageUrl + '?param=540y200'" 
+                            width="540"
+                            height="200"
+                            alt="轮播图"
+                        >
                         <span class="typeTitle" :style="{backgroundColor: item.titleColor}"> {{ item.typeTitle }} </span>
                     </div>
                 </div>
