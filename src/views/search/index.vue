@@ -76,19 +76,19 @@ watch(
 </script>
 
 <template>
-    <h1 class="search-keyword">
-        搜索&nbsp; {{ keyword }} 
-    </h1>
-    <Loading 
-        :loading="loading"
-        :top="`200px`"
-    >
-        <div>
-            <div v-if="!notFind">
-                <span>
-                搜索到 <mark>{{ total }}</mark> 条
-                </span>
-                <div>
+    <div>
+        <h1 class="search-keyword">
+            搜索&nbsp; {{ keyword }} 
+        </h1>
+        <Loading 
+            :loading="loading"
+            :top="`200px`"
+        >
+            <div>
+                <template v-if="!notFind">
+                    <span>
+                    搜索到 <mark>{{ total }}</mark> 条
+                    </span>
                     <SearchList 
                         :songList="listData"
                         :keyword="keyword" 
@@ -97,11 +97,11 @@ watch(
                         v-if="total > listData.length"
                         @observer="observer"
                     ></LazyLoading>
-                </div>
+                </template>
+                <span v-else>没有找到你想要的歌曲呢~</span>
             </div>
-            <span v-else>没有找到你想要的歌曲呢~</span>
-        </div>
-    </Loading>
+        </Loading>
+    </div>
 </template>
 
 <style lang='less'>

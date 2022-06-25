@@ -17,8 +17,6 @@ import OutIn from './components/out-in.vue';
 import zhCN from 'ant-design-vue/es/locale/zh_CN';
 
 let store = useStore();
-let router = useRouter();
-let selectedKeys = ref(['-1']);
 
 const target = () => document.querySelector('main');
 
@@ -43,25 +41,10 @@ window.addEventListener('offline', () => (store.state.onLine = false));
         <a-layout style="width: 100%; height: 100%">
             <Header></Header>
             <a-layout>
-                <!-- <a-layout-sider theme='light'>
-                    <a-menu 
-                        v-model:selectedKeys="selectedKeys" 
-                        mode="inline"
-                    >
-                        <template v-for="route in routes">
-                            <a-menu-item 
-                                v-if="route.meta && route.meta?.name !== '我的音乐' && route.meta.name" 
-                                :key="route.meta?.key"
-                            >
-                                <router-link :to="route.path"> {{ route.meta?.name }} </router-link>
-                            </a-menu-item>
-                        </template>
-                    </a-menu>
-                </a-layout-sider> -->
                 <a-layout-content class="main scroll-style">
                     <router-view v-slot="{ Component }">
                         <out-in>
-                            <keep-alive exclude="songSheet,lyric" max="1">
+                            <keep-alive exclude="lyric" max="3">
                                 <component :is="Component"/>
                             </keep-alive>
                         </out-in>
