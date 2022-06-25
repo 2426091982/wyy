@@ -1,7 +1,7 @@
 <script lang='ts' setup>
 import OutIn from './out-in.vue';
 
-const { top, } = defineProps({
+const { top } = defineProps({
     size: {
         type: String,
         default: 'default',
@@ -15,6 +15,7 @@ const position = {
     position: top ? 'absolute': '',
     top,
 };
+
 </script>
 
 <template>

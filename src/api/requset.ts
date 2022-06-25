@@ -10,7 +10,9 @@ const objToFormData = <T extends {[key: string]: any}>(obj: T) => {
 };
 
 const ask = (url: string, query: object) => {
-    return `${ url }${ url.includes('?') ? '&' : '?' }${ qs.stringify(query) }`;
+    return `${ url }${ 
+        url.includes('?') ? '&' : '?' 
+    }${ qs.stringify(query) }`;
 };
 
 export const qs = {
@@ -33,6 +35,7 @@ export const qs = {
 class Request {
     public baseUrl: string;
     public config: RequestInit;
+    public abortController?: AbortController; 
     constructor() {
         const headers = new Headers;
         headers.set('Content-Type', 'application/x-www-form-urlencoded');
@@ -54,12 +57,12 @@ class Request {
         let timer: NodeJS.Timeout;
         return new Promise((resolve, reject) => {
             // 请求中止控制器
-            const abortController = new AbortController();
+            this.abortController = new AbortController();
             fetch(url, {
                 ...this.config,
                 method,
                 body: body,
-                signal: abortController.signal,
+                signal: this.abortController.signal,
             }).then((response) => {
                 clearTimeout(timer);
                 const res = response.json().then(this.responseInterceptor);
@@ -67,7 +70,7 @@ class Request {
             }).catch(() => console.log('请求超时'));
             timer = setTimeout(() => {
                 clearTimeout(timer);
-                this.abort(abortController);
+                this.abort();
             }, 20000);
         });
     }
@@ -85,8 +88,8 @@ class Request {
         return this.send(url, 'post', objToFormData(body));
     }
 
-    abort(abortController: AbortController) { // 中止请求
-        abortController.abort();
+    abort() { // 中止请求
+        this.abortController?.abort();
         message.warn('请求超时，请稍后再试');
     }
 

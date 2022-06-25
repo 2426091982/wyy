@@ -38,7 +38,7 @@ import { useRoute } from "vue-router";
 import { SongData } from "@/types/song";
 import type { CurrentMusicState } from '@/store/types/currentMusic';
 import Loading from '@/components/loading.vue';
-import Comment from '@/components/comment/comment.vue';
+import CommentV from '@/components/comment/comment.vue';
 import { RecommendSongsData } from '@/store/types/recommendSongs';
 import { changePlayList } from '@/utils/song';
 
@@ -296,13 +296,13 @@ const updateCData = (source: UserEvents, cData: CommentInfo) => {
                         <ellipsis-outlined class="default" />
                     </a-space>
                 </div>
-                <Comment 
+                <CommentV 
                     v-show="!event.showComments"
                     :source-data="event"
                     :comment-data="event.comments || []"
                     @updateCData="updateCData"
                     class="base-margin-left50px"
-                ></Comment>
+                ></CommentV>
             </div>
         </div>
     </Loading>

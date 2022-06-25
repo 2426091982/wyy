@@ -13,6 +13,7 @@ import { playListSong } from "@/utils/song";
 import { PlayListInfo } from "@/store/types/playList";
 
 const loading = ref(true);
+const noodLoading = ref(true);
 const type = ref(Number(sessionStorage.getItem('late-musice-cat')) || 0);
 const list = ref<LatesMusic[]>([]);
 const cats = [

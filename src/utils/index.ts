@@ -20,6 +20,8 @@ export const toMD5 = (password: string) => md5(password);
 
 export const stop = (e: Event) => e.stopPropagation();
 
+export const notOpened = () => alert('功能暂未开通');
+
 // 生成时间戳
 export const now = () => Date.now();
 

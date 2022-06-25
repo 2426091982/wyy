@@ -21,15 +21,15 @@ export default defineConfig({
             '@': path.resolve('./src'),
         },
     },
-    build: {
-        assetsDir: __dirname + '/images',
-        sourcemap: true,
-        rollupOptions: {
-            output: {
-                entryFileNames: `js/[name].js`,
-                assetFileNames: `css/[name].[ext]`,
-                chunkFileNames: 'sourcemap/[name].js',
-            }
-        }
-    }
+    // build: {
+    //     assetsDir: __dirname + '/images',
+    //     sourcemap: true,
+    //     rollupOptions: {
+    //         output: {
+    //             entryFileNames: `js/[name].js`,
+    //             assetFileNames: `css/[name].[ext]`,
+    //             chunkFileNames: 'sourcemap/[name].js',
+    //         }
+    //     }
+    // }
 });

@@ -5,6 +5,7 @@ import {
 import { 
     day, 
     getItem, 
+    notOpened, 
     now, 
     parsePlayCount 
 } from "@/utils";
@@ -169,7 +170,7 @@ export default defineComponent({
                                 </template>
                                 开始播放
                             </a-button>
-                            <a-button shape="round">
+                            <a-button shape="round" @click="notOpened">
                                 <template #icon>
                                     <folder-add-outlined class="base-size18px" />
                                 </template>

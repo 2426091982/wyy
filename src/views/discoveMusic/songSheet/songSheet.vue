@@ -164,103 +164,103 @@ watch(
 </script>
 
 <template>
-    <div>
-        <div v-if="highqualityData" class="highquality-main">
-            <div class="highquality-main-bg base-absolute">
-                <img loading="lazy" :src="highqualityData.coverImgUrl" width="1100" alt="背景图片" >
-            </div>
-            <div class="highquality-main-detail">
-                <img loading="lazy" :src="highqualityData.coverImgUrl + '?param=140y140'" width="140" height="140" alt="">
-                <div class="highquality-main-body">
-                    <div>
-                        <a-button class="highquality-main-btn" ghost shape="round" @click="router.push(`/highquality/${cat}`)">
-                            <template #icon>
-                                <crown-outlined />
-                            </template>
-                            精品歌单
-                        </a-button>
+    <Loading :loading="loading" height="200px">
+        <div>
+            <div v-if="highqualityData" class="highquality-main">
+                <div class="highquality-main-bg base-absolute">
+                    <img loading="lazy" :src="highqualityData.coverImgUrl" width="1100" alt="背景图片" >
+                </div>
+                <div class="highquality-main-detail">
+                    <img loading="lazy" :src="highqualityData.coverImgUrl + '?param=140y140'" width="140" height="140" alt="">
+                    <div class="highquality-main-body">
+                        <div>
+                            <a-button class="highquality-main-btn" ghost shape="round" @click="router.push(`/highquality/${cat}`)">
+                                <template #icon>
+                                    <crown-outlined />
+                                </template>
+                                精品歌单
+                            </a-button>
+                        </div>
+                        <h3 style="color: #ffffff">{{ highqualityData.name }}</h3>
+                        <p class="base-size12px" style="color: #cccccc">{{ highqualityData.copywriter }}</p>
                     </div>
-                    <h3 style="color: #ffffff">{{ highqualityData.name }}</h3>
-                    <p class="base-size12px" style="color: #cccccc">{{ highqualityData.copywriter }}</p>
                 </div>
             </div>
-        </div>
-        <div class="play-list-cats">
-            <a-button 
-                class="select-cats" 
-                shape="round"
-                @click.stop="showTagList = !showTagList"
-            >
-                {{ cat }}
-                <right-outlined />
-            </a-button>
-        
-            <ul class="list-cats">
-                <li v-for="tag in hotTags" :key="tag.id">
-                    <span 
-                        :class="`cats-name base-pointer ${tag.name === cat ? 'cats-active' : ''}`"
-                        @click.stop="selectTag(tag)"
-                    > {{ tag.name }} </span>
-                </li>
-            </ul>
-
-            <div v-show="showTagList" ref="tagList" class="tag-list base-absolute">
-                <div class="tag-all">
-                    <span 
-                        :class="`cats-name base-pointer ${'全部歌单' === cat ? 'cats-active' : ''}`"
-                        @click="selectTag(all)"
-                    > 全部歌单 </span>
-                </div>
-                <div 
-                    v-for="(tag, key) in tags" 
-                    :key="key" 
-                    class="tag-list-item"
+            <div class="play-list-cats">
+                <a-button 
+                    class="select-cats" 
+                    shape="round"
+                    @click.stop="showTagList = !showTagList"
                 >
-                    <div class="tag-list-title">
-                        <global-outlined class="sub-title-icon" v-if="key === 0" />
-                        <insert-row-below-outlined class="sub-title-icon" v-else-if="key === 1"/>
-                        <coffee-outlined class="sub-title-icon" v-else-if="key === 2" />
-                        <smile-outlined class="sub-title-icon" v-else-if="key === 3" />
-                        <appstore-outlined class="sub-title-icon" v-else-if="key === 4" />
-                        <span> 
-                            {{ categories[key] }}
-                        </span>
+                    {{ cat }}
+                    <right-outlined />
+                </a-button>
+            
+                <ul class="list-cats">
+                    <li v-for="tag in hotTags" :key="tag.id">
+                        <span 
+                            :class="`cats-name base-pointer ${tag.name === cat ? 'cats-active' : ''}`"
+                            @click.stop="selectTag(tag)"
+                        > {{ tag.name }} </span>
+                    </li>
+                </ul>
+
+                <div v-show="showTagList" ref="tagList" class="tag-list base-absolute">
+                    <div class="tag-all">
+                        <span 
+                            :class="`cats-name base-pointer ${'全部歌单' === cat ? 'cats-active' : ''}`"
+                            @click="selectTag(all)"
+                        > 全部歌单 </span>
                     </div>
-                    <ul class="list-cats sub-list-cats">
-                        <li 
-                            v-for="item in tag"
-                            :key="item.name"
-                        >
-                            <span 
-                                :class="`cats-name base-pointer ${item.name === cat ? 'cats-active' : ''}`"
-                                @click.prevent="selectTag(item)"
-                            > 
-                                {{ item.name }}
-                                <span v-if="item.hot" class="cats-hot" >HOT</span> 
+                    <div 
+                        v-for="(tag, key) in tags" 
+                        :key="key" 
+                        class="tag-list-item"
+                    >
+                        <div class="tag-list-title">
+                            <global-outlined class="sub-title-icon" v-if="key === 0" />
+                            <insert-row-below-outlined class="sub-title-icon" v-else-if="key === 1"/>
+                            <coffee-outlined class="sub-title-icon" v-else-if="key === 2" />
+                            <smile-outlined class="sub-title-icon" v-else-if="key === 3" />
+                            <appstore-outlined class="sub-title-icon" v-else-if="key === 4" />
+                            <span> 
+                                {{ categories[key] }}
                             </span>
-                        </li>
-                    </ul>
+                        </div>
+                        <ul class="list-cats sub-list-cats">
+                            <li 
+                                v-for="item in tag"
+                                :key="item.name"
+                            >
+                                <span 
+                                    :class="`cats-name base-pointer ${item.name === cat ? 'cats-active' : ''}`"
+                                    @click.prevent="selectTag(item)"
+                                > 
+                                    {{ item.name }}
+                                    <span v-if="item.hot" class="cats-hot" >HOT</span> 
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
+                <div class="song-sheet-list">
+                    <sheetSongCard :songSheet="playlists"></sheetSongCard>
+                    <lazyLoading @observer="observer"></lazyLoading>
+                </div>
+            <a-pagination 
+                v-if="showPagination"
+                v-model:current="current" 
+                :pageSize="100"
+                :total="total" 
+                :pageSizeOptions="['100']"
+                @change="changePage"
+                class="pagination"
+                hideOnSinglePage 
+                show-less-items
+            />
         </div>
-        <Loading :loading="loading" height="200px">
-            <div class="song-sheet-list">
-                <sheetSongCard :songSheet="playlists"></sheetSongCard>
-                <lazyLoading @observer="observer"></lazyLoading>
-            </div>
-        </Loading>
-        <a-pagination 
-            v-if="showPagination"
-            v-model:current="current" 
-            :pageSize="100"
-            :total="total" 
-            :pageSizeOptions="['100']"
-            @change="changePage"
-            class="pagination"
-            hideOnSinglePage 
-            show-less-items
-        />
-    </div>
+    </Loading>
 </template>
 
 <style lang='less'>

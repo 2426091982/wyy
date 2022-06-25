@@ -20,7 +20,7 @@ import {
 import { parseArtists } from '@/utils';
 import { songData } from '@/utils/song';
 import { Banners } from '@/types/base';
-import { RecommentSongSheetData, SongSheetData } from '@/store/types/songSheet';
+import { SongSheetData } from '@/store/types/songSheet';
 import { useStore } from '@/store';
 import { PrivateContentData } from '@/store/types/privateContent';
 import { NewSongData } from '@/store/types/newSong';
@@ -29,18 +29,18 @@ import { getRecommendResource, getStatus } from '@/api';
 import Banner from '@/components/banner.vue';
 import Title from '@/components/title.vue';
 import PrivateContentCard from '@/components/privateContentCard.vue';
-import Loading from '@/components/loading.vue';
 import sheetSongCard from '@/components/sheetSongCard.vue';
+import Loading from '@/components/loading.vue';
 
 const store = useStore();
-const loading = ref(true);
 const songSheet = ref<SongSheetData[]>([]);
 const privateContent = ref<PrivateContentData[]>([]);
 const newSong = ref<NewSongData[]>([]);
 const bannerData = ref<Banners>([]);
+const loading = ref(true);
 const rSongId = ref(-1);
 
-const playRSong = async ({song, id, picUrl, }: NewSongData) => {
+const playRSong = async ({ song, id, picUrl }: NewSongData) => {
     const { 
         br, 
         url,
@@ -67,70 +67,83 @@ const playRSong = async ({song, id, picUrl, }: NewSongData) => {
 };
 
 const getBannerData = async () => {
-    let { 
-        code, 
-        banners, 
-    } = await getBanners() as Response & { banners: Banners };
-    if (code === 200) {
-        bannerData.value = parseBannerData(banners).splice(0, 8);
-    }
+    return new Promise(async resolve => {
+        let {
+            code, 
+            banners, 
+        } = await getBanners() as Response & { banners: Banners };
+        if (code === 200) {
+            bannerData.value = parseBannerData(banners).splice(0, 8);
+        }
+        resolve('ok');
+    });
 };
 
-const getRecommendSongsData = async (change = false) => {
-    let limit = 10;
-    let len = 0;
-    await getStatus();
-    if (store.state.isLogin) {
-        limit = 9;
-        let {
-            code,
-            recommend,
-        } = await getRecommendResource<Response & { recommend: SongSheetData[] }>();
-        if (change) songSheet.value = [];
-        if (code === 200) {
-            songSheet.value = recommend.slice(0, limit);
-            len = songSheet.value.length;
+const getRecommendSongsData = (change = false) => {
+    return new Promise(async resolve => {
+        let limit = 10;
+        let len = 0;
+        await getStatus();
+        if (store.state.isLogin) {
+            limit = 9;
+            let {
+                code,
+                recommend,
+            } = await getRecommendResource<Response & { recommend: SongSheetData[] }>();
+            if (change) songSheet.value = [];
+            if (code === 200) {
+                songSheet.value = recommend.slice(0, limit);
+                len = songSheet.value.length;
+            }
         }
-    }
-    if (!store.state.isLogin || len < 9) {
-        let {
-            code,
-            result,
-        } =  await getRecommendSongSheet(limit - len) as Response & { result: SongSheetData[] };
-        if (code === 200) {  
-            change 
-            ?  songSheet.value = result 
-            : songSheet.value.push(...result);
+        if (!store.state.isLogin || len < 9) {
+            let {
+                code,
+                result,
+            } =  await getRecommendSongSheet(limit - len) as Response & { result: SongSheetData[] };
+            if (code === 200) {  
+                change 
+                ?  songSheet.value = result 
+                : songSheet.value.push(...result);
+            }
         }
-    }
+        resolve('ok');
+    });
 }
 
-const getPrivateContentData = async () => {
-    let { 
+const getPrivateContentData = () => {
+    return new Promise(async resolve => {
+        let { 
         code, 
         result, 
-    } = await getPrivateContent() as Response & { result: PrivateContentData[] };
-    if (code === 200) {
-        privateContent.value = result;
-    }
+        } = await getPrivateContent() as Response & { result: PrivateContentData[] };
+        if (code === 200) {
+            privateContent.value = result;
+        }
+        resolve('ok');
+    });
 };
 
 const getNewSongsData = async () => {
-    let { 
-        code, 
-        result, 
-    } = await getNewSong() as Response & { result: NewSongData[] };
-    if (code === 200) {
-        newSong.value = parseNewSongData(result);
-    }
+    return new Promise(async resolve => {
+        let { 
+            code, 
+            result, 
+        } = await getNewSong() as Response & { result: NewSongData[] };
+        if (code === 200) {
+            newSong.value = parseNewSongData(result);
+        }
+        resolve('ok');
+    });
 };
 
 onMounted(() => {
-    getBannerData();
-    getRecommendSongsData();
-    getPrivateContentData();
-    getNewSongsData();
-    loading.value = false;
+    Promise.all([
+        getBannerData(), 
+        getRecommendSongsData(),
+        getPrivateContentData(),
+        getNewSongsData()
+    ]).then(() => loading.value = false);
 });
 
 watch(
@@ -146,7 +159,7 @@ watch(
 </script>
 
 <template>
-    <Loading :loading="loading" top="200px">
+    <Loading top="200px" :loading="loading">
         <div>
             <Banner :imgList="bannerData"></Banner>
             <Title title="推荐歌单" path="/discoveMusic/songSheet"></Title>
@@ -173,7 +186,7 @@ watch(
                         <img loading="lazy" :src="item.picUrl + '?param=50y50'">
                     </div>
                     <div class="new-song-info">
-                        <div class="new-song-name">
+                        <div class="new-song-name ellipsis">
                             {{ item.name }}
                         </div>
                         <div class="new-song-artists ellipsis">
@@ -184,6 +197,7 @@ watch(
             </div>
         </div>
     </Loading>
+    
 </template>
 
 <style lang='less'>
@@ -195,6 +209,7 @@ watch(
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
+    height: 520px;
     gap: 20px;
 }
 

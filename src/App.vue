@@ -37,14 +37,6 @@ onBeforeMount(async () => {
 
 window.addEventListener('online', () => (store.state.onLine = true));
 window.addEventListener('offline', () => (store.state.onLine = false));
-
-watch( // 观察当前路由的meat有没有name，没有则不会选中导航栏
-    () => router.currentRoute.value, 
-    (now) => {
-        const key = now.meta.key as string ?? '-1';
-        selectedKeys.value = [key];
-    }
-);
 </script>
 
 <template>
@@ -65,11 +57,6 @@ watch( // 观察当前路由的meat有没有name，没有则不会选中导航�
                                 <router-link :to="route.path"> {{ route.meta?.name }} </router-link>
                             </a-menu-item>
                         </template>
-                        <a-menu-item-group>
-                            <template #title> 我的音乐 </template>
-                            <a-menu-item key="112">本地下载</a-menu-item>
-                            <a-menu-item key="113">最近播放</a-menu-item>
-                        </a-menu-item-group>
                     </a-menu>
                 </a-layout-sider>
                 <a-layout-content class="main scroll-style">

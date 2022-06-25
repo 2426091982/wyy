@@ -31,6 +31,7 @@ defineProps({
 .private-content-main {
     display: flex;
     width: 100%;
+    height: 240px;
     justify-content: space-between;
     gap: 20px;
 

@@ -43,58 +43,6 @@ const routes: RouteRecordRaw[] = [
         ],
     },
     {
-        path: '/podcast',
-        component: () => import('@/views/podcast/podcast.vue'),
-        meta: {
-            key: '2',
-            name: '播客',
-            flag: true,
-        },
-    },
-    {
-        path: '/video',
-        component: () => import('@/views/video/video.vue'),
-        meta: {
-            key: '3',
-            name: '视频',
-            flag: true,
-        },
-    },
-    {
-        path: '/friends',
-        component: () => import('@/views/friend/friend.vue'),
-        meta: {
-            key: '4',
-            name: '朋友',
-            flag: true,
-        },
-    },
-    {
-        path: '/privateFM',
-        component: () => import('@/views/privateFM/privateFM.vue'),
-        meta: {
-            key: '5',
-            name: '私人FM',
-            flag: true,
-        },
-    },
-    {
-        path: '/myMusic',
-        component: () => import('@/views/myMusic/myMusic.vue'),
-        meta: {
-            name: '我的音乐',
-            flag: true,
-        },
-    },
-    {
-        path: '/dynamic',
-        component: () => import('@/views/dynamic/dynamic.vue'),
-        meta: {
-            name: '动态',
-            flag: true,
-        }
-    },
-    {
         path: '/songSheet/:id',
         name: 'songSheet',
         component: () => import('@/views/songSheet/songSheet.vue'),

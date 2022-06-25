@@ -16,7 +16,9 @@ onMounted(() => {
 
 <template>
     <div ref="observer" class="observer">
-        <slot></slot>
+        <slot>
+            <div>正拼命加载中...</div>
+        </slot>
     </div>
 </template>
 
