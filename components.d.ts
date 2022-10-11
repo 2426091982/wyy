@@ -36,8 +36,6 @@ declare module '@vue/runtime-core' {
     ASpace: typeof import('ant-design-vue/es')['Space']
     ASpin: typeof import('ant-design-vue/es')['Spin']
     AStatistic: typeof import('ant-design-vue/es')['Statistic']
-    ATag: typeof import('ant-design-vue/es')['Tag']
-    ATooltip: typeof import('ant-design-vue/es')['Tooltip']
     Banner: typeof import('./src/components/banner.vue')['default']
     Collection: typeof import('./src/components/collection.vue')['default']
     DynamicComment: typeof import('./src/components/dynamicComment/dynamicComment.vue')['default']
