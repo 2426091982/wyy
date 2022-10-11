@@ -71,7 +71,7 @@ export const useInit = () => {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.5;
 
-  const control = new OrbitControls(camera, document.documentElement)
+  const control = new OrbitControls(camera, container)
   control.enableDamping = true // 阻尼效果
   control.maxPolarAngle = Math.PI / 2
   control.maxDistance = 5

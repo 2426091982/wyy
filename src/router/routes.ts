@@ -11,7 +11,8 @@ const routes: RouteRecordRaw[] = [
         component: DiscoveMusic,
         redirect: '/discoveMusic/recommend',
         meta: {
-            key: '1',
+            menuKey: 0,
+            showToMenu: true,
             name: '发现音乐',
         },
         children: [
@@ -20,7 +21,7 @@ const routes: RouteRecordRaw[] = [
                 name: '个性推荐',
                 component: () => import('@/views/discoveMusic/recommend/recommend.vue'),
                 meta: {
-                    flag: true,
+                    isRecordPath: true,
                 }
             },
             {
@@ -28,7 +29,7 @@ const routes: RouteRecordRaw[] = [
                 name: '歌单',
                 component: () => import('@/views/discoveMusic/songSheet/songSheet.vue'),
                 meta: {
-                    flag: true,
+                    isRecordPath: true,
                 }
             },
             {
@@ -36,13 +37,8 @@ const routes: RouteRecordRaw[] = [
                 name: '最新音乐',
                 component: () => import('@/views/discoveMusic/latestMusic/latestMusic.vue'),
                 meta: {
-                    flag: true,
+                    isRecordPath: true,
                 }
-            },
-            {
-                path: 'metaWorldRediect',
-                name: '元世界',
-                redirect: '/metaWorld'
             }
         ],
     },
@@ -50,13 +46,18 @@ const routes: RouteRecordRaw[] = [
         path: '/metaWorld',
         name: 'metaWorld',
         component: () => import('@/views/metaWorld/index.vue'),
-        meta: { flag: true, },
+        meta: {
+            menuKey: 1,
+            showToMenu: true,
+            name: '元世界',
+            isRecordPath: true,
+        },
     },
     {
         path: '/songSheet/:id',
         name: 'songSheet',
         component: () => import('@/views/songSheet/songSheet.vue'),
-        meta: { flag: true, },
+        meta: { isRecordPath: true, },
         children: [
             {
                 path: '',
@@ -68,25 +69,25 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/mv/:id',
         component: () => import('@/views/mv/mv.vue'),
-        meta: { flag: true, },
+        meta: { isRecordPath: true, },
     },
     {
         path: '/highquality/:cat',
         name: '精品歌单',
         component: () => import('@/components/highqualitySongSheet.vue'),
-        meta: { flag: true, },
+        meta: { isRecordPath: true, },
     },
     {
         path: '/lyric',
         name: 'lyric',
         component: () => import('@/views/lyric/index.vue'),
-        meta: { flag: true, },
+        meta: { isRecordPath: true, },
     },
     {
         path: '/search/:keyword',
         name: '搜索详情',
         component: () => import('@/views/search/index.vue'),
-        meta: { flag: true, },
+        meta: { isRecordPath: true, },
     }
 ];
 

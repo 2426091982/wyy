@@ -192,7 +192,7 @@ watch(
                     shape="round"
                     @click.stop="showTagList = !showTagList"
                 >
-                    {{ cat }}
+                    {{ cat === 'all' ? '全部歌单 ' : cat }}
                     <right-outlined />
                 </a-button>
             

@@ -3,7 +3,7 @@ import { SongSheet } from "../types/songSheet";
 const songSheet: SongSheet = {
     namespaced: true,
     state: {
-        tagName: sessionStorage.getItem('tag-name') || '全部歌单',
+        tagName: sessionStorage.getItem('tag-name') || 'all',
         tagId: Number(sessionStorage.getItem('tag-id')) || -1,
         tag: [],
         hotTag: [],

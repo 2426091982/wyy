@@ -4,8 +4,6 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { loadingManager } from './useLoadingManager'
 
 export const useCreateGeometry = (scene: Scene, cemera: Camera, control: OrbitControls) => {
-
-
   // 导入纹理
   const textureLoader = new THREE.TextureLoader(loadingManager)
   const planeTexture = textureLoader.load('/texture/drive-download-20221006T103431Z-001/Gravel_001_BaseColor.jpg')

@@ -49,7 +49,7 @@ const goAndBack = (isGo: boolean) => {
  * goStack[0]等于当前路由路径则会置灰前进按钮
  */
 router.beforeEach((to) => {
-    if (to.meta.flag && to.path !== backStack[0]) {
+    if (to.meta.isRecordPath && to.path !== backStack[0]) {
         if (clear) { // 
             goStack.splice(0, goStack.length);
             clear = false;

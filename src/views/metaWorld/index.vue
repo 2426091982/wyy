@@ -5,7 +5,6 @@ import { ref } from "vue";
 import { useInit, useHandleAudio, useCreateGeometry } from "./hooks";
 import { useLoadingManager } from "./hooks/useLoadingManager";
 import OutIn from "@/components/out-in.vue";
-import { computed } from "@vue/reactivity";
 
 const total = ref(0);
 const userBehavior = ref(true);
@@ -29,20 +28,20 @@ const { oceanAmbientSound, audioLoaded } = useHandleAudio(
 );
 
 const handleClick = () => {
-  userBehavior.value = false;
-  if (audioLoaded.value) {
+  if (audioLoaded.value && !oceanAmbientSound.isPlaying) {
     oceanAmbientSound.play();
+    userBehavior.value = false;
   }
 };
 </script>
 
 <template>
   <OutIn>
-    <!-- <div
-      v-if="!loaded || !audioLoaded || userBehavior"
+    <div
+      v-if="userBehavior"
       class="loading-container"
       @click="handleClick"
-      @touchstart="userBehavior = false"
+      @touchstart="handleClick"
     >
       <div class="loading-process">
         <template v-if="!loaded || !audioLoaded">
@@ -51,8 +50,8 @@ const handleClick = () => {
         </template>
         <div v-else class="loaded-text">屏幕点击继续</div>
       </div>
-    </div> -->
-    <div id="three"></div>
+    </div>
+    <div v-else id="three"></div>
   </OutIn>
 </template>
 
@@ -102,7 +101,6 @@ export default {
   color: #ffffff;
   z-index: 10;
 }
-
 
 .dg {
   position: fixed;

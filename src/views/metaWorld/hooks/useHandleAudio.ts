@@ -69,7 +69,7 @@ export function useHandleAudio(
     loaded += textureCount.value
     process.value = +((loaded / total.value) * 100).toFixed(0)
   })
-
+  
   return {
     audioLoaded,
     oceanAmbientSound: positionalAudio

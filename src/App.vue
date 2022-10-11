@@ -8,13 +8,14 @@ import Header from "@/components/header/index.vue";
 import Login from "@/views/user/index.vue";
 import Player from "@/components/footer/index.vue";
 import OutIn from "./components/out-in.vue";
-import zhCN from "ant-design-vue/es/locale/zh_CN";
+import routes from "@/router/routes";
 import { useRoute } from "vue-router";
 
 const store = useStore();
 const route = useRoute();
 const isMetaWorld = ref(true);
 const target = () => document.querySelector("main");
+let selectedKeys = ref([route.meta.menuKey || routes[1].meta!.menuKey]);
 
 watch(
   () => route.fullPath,
@@ -35,15 +36,36 @@ window.addEventListener("offline", () => (store.state.onLine = false));
     <a-layout style="width: 100%; height: 100%">
       <Header></Header>
       <a-layout>
-        <a-layout-content class="main scroll-style">
-          <router-view v-slot="{ Component }">
-            <out-in v-if="Component">
-              <keep-alive exclude="lyric" max="3">
-                <component :is="Component" />
-              </keep-alive>
-            </out-in>
-          </router-view>
-        </a-layout-content>
+        <a-layout-sider theme="light">
+          <a-menu v-model:selectedKeys="selectedKeys" mode="inline">
+            <template v-for="(route, key) in routes">
+              <a-menu-item
+                v-if="route.meta && route.meta.showToMenu"
+                :key="route.meta.menuKey"
+              >
+                <router-link :to="route.path">
+                  {{ route.meta.name }}
+                </router-link>
+              </a-menu-item>
+            </template>
+            <a-menu-item-group>
+              <template #title>我的音乐</template>
+              <a-menu-item key="112">本地下载</a-menu-item>
+              <a-menu-item key="113">最近播放</a-menu-item>
+            </a-menu-item-group>
+          </a-menu>
+        </a-layout-sider>
+        <a-layout>
+          <a-layout-content class="main scroll-style">
+            <router-view v-slot="{ Component }">
+              <out-in v-if="Component">
+                <keep-alive exclude="lyric" max="3">
+                  <component :is="Component" />
+                </keep-alive>
+              </out-in>
+            </router-view>
+          </a-layout-content>
+        </a-layout>
       </a-layout>
       <a-layout-footer class="showLatelyList">
         <player></player>
