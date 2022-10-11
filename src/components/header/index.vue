@@ -1,27 +1,19 @@
 <script lang="ts" setup>
-import { 
+import {
     SwapOutlined,
     RightOutlined,
     LogoutOutlined,
     CaretDownOutlined,
-    UserOutlined 
-} from '@ant-design/icons-vue';
-import { 
-    DyismaData, 
-    FollowedsData, 
-    FollowsData 
-} from '@/store/types/user';
-import { 
-    getDynamic, 
-    getFolloweds, 
-    getFollows 
-} from '@/api';
-import { ref } from '@vue/reactivity';
-import { useStore } from '@/store';
-import { loginOut } from '@/utils';
-import historicalRecords from './historicalRecords.vue';
-import Loading from '@/components/loading.vue';
-import Seach from '@/components/search/index.vue';
+    UserOutlined,
+} from "@ant-design/icons-vue";
+import { DyismaData, FollowedsData, FollowsData } from "@/store/types/user";
+import { getDynamic, getFolloweds, getFollows } from "@/api";
+import { ref } from "@vue/reactivity";
+import { useStore } from "@/store";
+import { loginOut } from "@/utils";
+import historicalRecords from "./historicalRecords.vue";
+import Loading from "@/components/loading.vue";
+import Seach from "@/components/search/index.vue";
 
 let loading = ref(true);
 let showDropdown = ref(false);
@@ -31,63 +23,68 @@ const user = store.state.user;
 
 // 获取用户动态
 const getUserDynamic = async (uid: number) => {
-    const {
-        events, 
-        lasttime, 
-        more, 
-        size,
-    } = await getDynamic(uid) as DyismaData;
-    user.dyisma['events'] = events;
-    user.dyisma['lasttime'] = lasttime;
-    user.dyisma['more'] = more;
-    user.dyisma['size'] = size;
+    const { events, lasttime, more, size } = (await getDynamic(
+        uid
+    )) as DyismaData;
+    user.dyisma["events"] = events;
+    user.dyisma["lasttime"] = lasttime;
+    user.dyisma["more"] = more;
+    user.dyisma["size"] = size;
 };
 
 // 获取用户关注列表
 const getUserFollow = async (uid: number) => {
-    const {
-        follow,
-        more,
-    } = await getFollows(uid) as FollowsData;
-    user.follows['follow'] = follow;
-    user.follows['more'] = more;
-    user.follows['size'] = follow.length;
+    const { follow, more } = (await getFollows(uid)) as FollowsData;
+    user.follows["follow"] = follow;
+    user.follows["more"] = more;
+    user.follows["size"] = follow.length;
 };
 
 // 获取用户粉丝列表
 const getUserFolloweds = async (uid: number) => {
-    const {
-        followeds,
-        more,
-        newCount,
-        size,
-    } = await getFolloweds(uid) as FollowedsData;
-    user.followeds['followeds'] = followeds;
-    user.followeds['newCount'] = newCount;
-    user.followeds['more'] = more;
-    user.followeds['size'] = size;
+    const { followeds, more, newCount, size } = (await getFolloweds(
+        uid
+    )) as FollowedsData;
+    user.followeds["followeds"] = followeds;
+    user.followeds["newCount"] = newCount;
+    user.followeds["more"] = more;
+    user.followeds["size"] = size;
 };
 
 // 发送请求，更新数据
 const sends = async () => {
-    if(!user.info) return;
+    if (!user.info) return;
     if (!showDropdown.value) return;
     const uid: number = user.info.userId;
     await Promise.all([
-        getUserDynamic(uid), 
-        getUserFollow(uid), 
-        getUserFolloweds(uid)
+        getUserDynamic(uid),
+        getUserFollow(uid),
+        getUserFolloweds(uid),
     ]);
     loading.value = false;
 };
 
+let mouseStart: MouseEvent | null = null;
+const mousedown = (e: MouseEvent) => {
+    mouseStart = e;
+};
+const mouseup = () => {
+    mouseStart = null;
+};
+const mousemove = (e: MouseEvent) => {};
 </script>
 
 <template>
-    <a-layout-header class="header" style="padding: 0">
+    <a-layout-header
+        class="header"
+        style="padding: 0"
+        @mousedown="mousedown"
+        @mouseup="mouseup"
+        @mousemove="mousemove"
+    >
         <div class="flex-item">
             <div class="logo" @click="$router.push('/')">
-                <img loading="lazy" src="/images/logo1.png" alt="logo">
+                <img loading="lazy" src="/images/logo1.png" alt="logo" />
                 网抑云音乐
             </div>
             <div class="historical">
@@ -98,11 +95,19 @@ const sends = async () => {
         <div class="flex-item">
             <a-space :size="20">
                 <a-space v-if="store.state.isLogin && user.info">
-                    <a-dropdown v-model:visible="showDropdown" trigger="click" @visibleChange="sends">
+                    <a-dropdown
+                        v-model:visible="showDropdown"
+                        trigger="click"
+                        @visibleChange="sends"
+                    >
                         <a-space class="base-pointer">
                             <a-avatar>
                                 <template #icon>
-                                    <img loading="lazy" :src="user.info.avatarUrl" alt="">
+                                    <img
+                                        loading="lazy"
+                                        :src="user.info.avatarUrl"
+                                        alt=""
+                                    />
                                 </template>
                             </a-avatar>
                             <span class="login">
@@ -115,54 +120,89 @@ const sends = async () => {
                                 <Loading :loading="loading" height="64px">
                                     <a-row class="base-text-center">
                                         <a-col :span="8">
-                                            <router-link 
-                                                :to="{ 
-                                                    path: '/dynamic', 
-                                                    query: { 
-                                                        name: user.info.nickname, 
-                                                        id: user.info.userId, 
+                                            <router-link
+                                                :to="{
+                                                    path: '/dynamic',
+                                                    query: {
+                                                        name: user.info
+                                                            .nickname,
+                                                        id: user.info.userId,
                                                     },
                                                 }"
                                             >
-                                                <a-statistic class="base-pointer" title="动态" :value="user.dyisma.size"/>
+                                                <a-statistic
+                                                    class="base-pointer"
+                                                    title="动态"
+                                                    :value="user.dyisma.size"
+                                                />
                                             </router-link>
                                         </a-col>
                                         <a-col :span="8">
                                             <router-link to="/">
-                                                <a-statistic class="base-pointer" title="关注" :value="user.follows.size" />
+                                                <a-statistic
+                                                    class="base-pointer"
+                                                    title="关注"
+                                                    :value="user.follows.size"
+                                                />
                                             </router-link>
                                         </a-col>
                                         <a-col :span="8">
                                             <router-link to="/">
-                                                <a-statistic class="base-pointer" title="粉丝" :value="user.followeds.size" />
+                                                <a-statistic
+                                                    class="base-pointer"
+                                                    title="粉丝"
+                                                    :value="user.followeds.size"
+                                                />
                                             </router-link>
                                         </a-col>
                                     </a-row>
                                 </Loading>
                                 <a-menu class="header-menu">
-                                    <a-menu-item class="header-menu-item" key="1">
+                                    <a-menu-item
+                                        class="header-menu-item"
+                                        key="1"
+                                    >
                                         <a-row>
                                             <a-col :span="8">
-                                                <user-outlined class="margin-left" />
+                                                <user-outlined
+                                                    class="margin-left"
+                                                />
                                                 <span>个人信息</span>
                                             </a-col>
-                                            <a-col :span="8" :offset="8" style="text-align: end;">
+                                            <a-col
+                                                :span="8"
+                                                :offset="8"
+                                                style="text-align: end"
+                                            >
                                                 <right-outlined />
                                             </a-col>
                                         </a-row>
                                     </a-menu-item>
-                                    <a-menu-item class="header-menu-item" key="2">
+                                    <a-menu-item
+                                        class="header-menu-item"
+                                        key="2"
+                                    >
                                         <a-row>
                                             <a-col :span="8">
-                                                <swap-outlined class="margin-left"/>
+                                                <swap-outlined
+                                                    class="margin-left"
+                                                />
                                                 <span>更换绑定手机</span>
                                             </a-col>
-                                            <a-col :span="8" :offset="8" style="text-align: end;">
+                                            <a-col
+                                                :span="8"
+                                                :offset="8"
+                                                style="text-align: end"
+                                            >
                                                 <right-outlined />
                                             </a-col>
                                         </a-row>
                                     </a-menu-item>
-                                    <a-menu-item class="header-menu-item" key="3" @click="loginOut">
+                                    <a-menu-item
+                                        class="header-menu-item"
+                                        key="3"
+                                        @click="loginOut"
+                                    >
                                         <logout-outlined class="margin-left" />
                                         <span>退出登录</span>
                                     </a-menu-item>
@@ -173,9 +213,15 @@ const sends = async () => {
                 </a-space>
                 <a-space v-else>
                     <a-avatar @click="$store.state.showLoginD = true">
-                        <template #icon><user-outlined class="base-pointer" /></template>
+                        <template #icon
+                            ><user-outlined class="base-pointer"
+                        /></template>
                     </a-avatar>
-                    <span class="login base-pointer" @click="$store.state.showLoginD = true">未登录</span>
+                    <span
+                        class="login base-pointer"
+                        @click="$store.state.showLoginD = true"
+                        >未登录</span
+                    >
                 </a-space>
             </a-space>
         </div>
@@ -198,7 +244,7 @@ const sends = async () => {
     height: 60px;
     justify-content: space-between;
     background-color: #1890ff;
-    
+
     .flex-item {
         display: flex;
         justify-content: flex-start;
@@ -223,7 +269,7 @@ const sends = async () => {
     text-align: center;
     user-select: none;
     cursor: pointer;
-    
+
     img {
         width: 30px;
         height: 30px;
@@ -242,7 +288,7 @@ const sends = async () => {
 .login {
     color: #ffffff;
     transition: color 0.2s;
-    
+
     &:hover {
         color: #dddddd;
     }
@@ -266,7 +312,7 @@ const sends = async () => {
     user-select: none;
 
     &::before {
-        content: '';
+        content: "";
         position: absolute;
         top: -4px;
         right: 10px;
