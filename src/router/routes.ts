@@ -1,6 +1,5 @@
 import { RouteRecordRaw } from 'vue-router';
 import DiscoveMusic from '@/views/discoveMusic/discoveMusic.vue';
-import Recommend from '@/views/discoveMusic/recommend/recommend.vue';
 
 const routes: RouteRecordRaw[] = [
     {
@@ -19,7 +18,7 @@ const routes: RouteRecordRaw[] = [
             {
                 path: 'recommend',
                 name: '个性推荐',
-                component: Recommend,
+                component: () => import('@/views/discoveMusic/recommend/recommend.vue'),
                 meta: {
                     flag: true,
                 }
@@ -39,8 +38,19 @@ const routes: RouteRecordRaw[] = [
                 meta: {
                     flag: true,
                 }
+            },
+            {
+                path: 'metaWorldRediect',
+                name: '元世界',
+                redirect: '/metaWorld'
             }
         ],
+    },
+    {
+        path: '/metaWorld',
+        name: 'metaWorld',
+        component: () => import('@/views/metaWorld/index.vue'),
+        meta: { flag: true, },
     },
     {
         path: '/songSheet/:id',
@@ -50,6 +60,7 @@ const routes: RouteRecordRaw[] = [
         children: [
             {
                 path: '',
+                name: 'playList',
                 component: () => import('@/components/playList/playList.vue'),
             }
         ],

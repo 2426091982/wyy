@@ -3,16 +3,15 @@ import { store } from '@/store';
 import { now } from '@/utils';
 import { message } from 'ant-design-vue';
 
-const objToFormData = <T extends {[key: string]: any}>(obj: T) => {
+const objToFormData = <T extends { [key: string]: any }>(obj: T) => {
     const formData = new FormData;
     for (const key in obj) formData.append(key, obj[key]);
     return formData;
 };
 
 const ask = (url: string, query: object) => {
-    return `${ url }${ 
-        url.includes('?') ? '&' : '?' 
-    }${ qs.stringify(query) }`;
+    return `${url}${url.includes('?') ? '&' : '?'
+        }${qs.stringify(query)}`;
 };
 
 export const qs = {
@@ -25,9 +24,9 @@ export const qs = {
         return str.slice(0, -1);
     },
     parse(str: string) {
-        const obj: {[key: string]: string} = {};
+        const obj: { [key: string]: string } = {};
         const reg = /([0-9a-zA-Z]+)=([0-9a-zA-Z]+)/g;
-        str.replace(reg, (_, key:string, value: string) => obj[key] = value);
+        str.replace(reg, (_, key: string, value: string) => obj[key] = value);
         return obj;
     },
 };
@@ -35,11 +34,11 @@ export const qs = {
 class Request {
     public baseUrl: string;
     public config: RequestInit;
-    public abortController?: AbortController; 
+    public abortController?: AbortController;
     constructor() {
         const headers = new Headers;
         headers.set('Content-Type', 'application/x-www-form-urlencoded');
-        this.baseUrl = 'http://112.74.37.119:3000';
+        this.baseUrl = 'http://127.0.0.1:5000';
         this.config = {
             credentials: 'include',
             mode: 'cors',
@@ -49,8 +48,8 @@ class Request {
     }
 
     send(
-        url: string, 
-        method: string, 
+        url: string,
+        method: string,
         body: FormData | null = null
     ) {
         if (!this.requestInterceptor()) return Promise.resolve({}); // 请求前的拦截
@@ -97,12 +96,12 @@ class Request {
         if ('subed' in response) {
             response.data.subed = response.subed;
         }
-        
+
         switch (response.code) {
-        case 200:
-            return response.data ?? response;
-        default :
-            return response;
+            case 200:
+                return response.data ?? response;
+            default:
+                return response;
         }
     }
 

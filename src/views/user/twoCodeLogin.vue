@@ -28,7 +28,7 @@ let wait = ref(false);
 let enter = ref(false); 
 let timer = setInterval(async () => {
     if (!isTwoCodeLogin.state || reGet.value) return; // 如果不在扫码的页面则不发送检测请求
-    let { code, } = await checkTwoCodeEffective(key.value) as TwoCodeState;
+    let { code, cookie } = await checkTwoCodeEffective(key.value) as TwoCodeState;
     switch (code) {
     case 800: // 二维码过期
         reGet.value = true;
@@ -37,6 +37,9 @@ let timer = setInterval(async () => {
         wait.value = true;
         break;
     case 803: // 扫码成功，存储cookies
+    console.log(cookie.length);
+    
+        document.cookie = cookie
         mountData(await getLoginStatus());
         clearInterval(timer);
         break;

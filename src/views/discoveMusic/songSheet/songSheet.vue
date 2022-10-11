@@ -409,6 +409,14 @@ watch(
     }
 }
 
+.song-sheet-list {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    height: 520px;
+    gap: 20px;
+}
+
 .tag-list-title {
     display: flex;
     align-items: center;

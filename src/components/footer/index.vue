@@ -354,14 +354,14 @@ onMounted(() => {
     /* 按下空格进行播放或停止 */
     let keydown = (e: KeyboardEvent) => {
         switch (e.code) {
-        case 'Space':
-            playSong();
-            break;
-        case 'ArrowLeft':
-            prevSong();
-            break;
-        case 'ArrowRight':
-            nextSong();
+            case 'Space':
+                playSong();
+                break;
+            case 'ArrowLeft':
+                prevSong();
+                break;
+            case 'ArrowRight':
+                nextSong();
         }
     };
     /**

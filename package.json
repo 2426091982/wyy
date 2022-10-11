@@ -9,24 +9,30 @@
   "dependencies": {
     "@ant-design/icons-vue": "^6.0.1",
     "@types/md5": "^2.3.2",
-    "@types/vue": "^2.0.0",
-    "ant-design-vue": "^3.0.0-alpha.14",
+    "ant-design-vue": "^3.2.12",
     "less": "^4.1.2",
     "md5": "^2.3.0",
-    "unplugin-vue-components": "^0.17.9",
+    "three": "^0.145.0",
+    "unplugin-vue-components": "^0.22.7",
     "vue": "^3.2.16",
     "vue-router": "4",
     "vuex": "^4.0.2"
   },
   "devDependencies": {
-    "@types/node": "^16.11.11",
+    "@types/dat.gui": "^0.7.7",
+    "@types/node": "^16.11.64",
+    "@types/three": "^0.144.0",
     "@typescript-eslint/eslint-plugin": "^5.5.0",
     "@typescript-eslint/parser": "^5.5.0",
-    "@vitejs/plugin-vue": "^1.9.3",
+    "@vitejs/plugin-vue": "^3.1.2",
+    "@vitejs/plugin-vue-jsx": "^2.0.1",
+    "dat.gui": "^0.7.9",
     "eslint": "^8.3.0",
     "eslint-plugin-vue": "^8.1.1",
+    "mkcert": "^1.5.1",
     "typescript": "^4.4.3",
-    "vite": "^2.6.4",
+    "vite": "^3.1.4",
+    "vite-plugin-mkcert": "^1.10.1",
     "vue-tsc": "^0.3.0"
   }
 }
